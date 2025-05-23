@@ -51,7 +51,7 @@ public function login(Request $request)
 public function logout(Request $request)
 {
     $request->user()->tokens()->delete();
-    return response()->json(['message' => 'Logged out'] , 200);
+    return response()->json(['message' => 'Logged out' , 'status' => 200] , 200);
 }
 
 public function profile(Request $request)

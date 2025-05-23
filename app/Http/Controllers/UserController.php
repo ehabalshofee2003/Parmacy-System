@@ -11,9 +11,15 @@ class UserController extends Controller
 {
 public function index()
 {
-    return User::where('role', 'pharmacist')
-                ->get(['username', 'password']) ;
+    $users = User::where('role', 'pharmacist')
+                 ->get(['username']);  
+
+    return response()->json([
+         'status' => 200,
+        'data' => $users
+    ], 200);
 }
+
 public function store(Request $request)
 {
     $validated = $request->validate([

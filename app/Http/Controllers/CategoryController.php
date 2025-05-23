@@ -7,10 +7,14 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-   public function index()
+  public function index()
 {
-    return response()->json([Category::all() ,       'status' => 200,]);
+    return response()->json([
+        'status' => 200,
+        'categories' => Category::all()
+    ], 200);
 }
+
 
 public function store(Request $request)
 {
@@ -23,7 +27,7 @@ public function store(Request $request)
 public function medicines($id)
 {
     $category = Category::with('medicines')->findOrFail($id);
-    return response()->json($category->medicines);
+    return response()->json(['medicines ' => $category->medicines , 'status' => 200]);
 }
 public function show($id)
 {

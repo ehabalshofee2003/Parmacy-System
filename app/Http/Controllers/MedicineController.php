@@ -87,17 +87,19 @@ public function index(Request $request)
 
 */
 
-    public function show($id)
-    {
-        $medicine = Medicine::find($id);
+ public function show($id)
+{
+    $medicine = Medicine::find($id);
 
-        if (!$medicine) {
-            return response()->json(['message' => 'الدواء غير موجود'], 404);
-        }
-
-    return new MedicineResource([$medicine ,       'status' => 200,]);
+    if (!$medicine) {
+        return response()->json(['message' => 'الدواء غير موجود'], 404);
     }
 
+    return response()->json([
+        'status' => 200,
+        'data' => new MedicineResource($medicine)
+    ], 200);
+}
 
     public function store(StoreMedicineRequest  $request)
     {
