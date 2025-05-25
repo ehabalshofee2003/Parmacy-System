@@ -12,14 +12,13 @@ class UserController extends Controller
 public function index()
 {
     $users = User::where('role', 'pharmacist')
-                 ->get(['username']);  
+                 ->get(['username']);
 
     return response()->json([
          'status' => 200,
         'data' => $users
     ], 200);
 }
-
 public function store(Request $request)
 {
     $validated = $request->validate([
@@ -34,7 +33,6 @@ public function store(Request $request)
 
     return response()->json([$user, 'status' => 201], 201);
 }
-
 public function update(Request $request, $id)
 {
     $user = User::findOrFail($id);
@@ -63,8 +61,6 @@ public function update(Request $request, $id)
 
     return response()->json(['message' => 'تم تحديث بيانات الموظف بنجاح.', 'user' => $user->username , 'status' => 200 ],200);
 }
-
-
 public function destroy($id)
 {
     $user = User::find($id);
@@ -75,7 +71,6 @@ if (!$user) {
 
 return response()->json(['message' => 'تم حذف المستخدم بنجاح'], 200);
 }
-
 /*
 git init                 # تهيئة مستودع جديد لو ما كان موجود
 git add .                # إضافة كل الملفات للمستودع
@@ -88,6 +83,5 @@ git checkout -b feature/اسم_الميزة  # إنشاء فرع جديد
 git add .                 # إضافة كل الملفات المعدلة
 git commit -m "وصف التعديل"  # تسجيل التعديل مع رسالة
 git push origin feature/اسم_الميزة # رفع الفرع للمستودع البعيد
-
 */
 }

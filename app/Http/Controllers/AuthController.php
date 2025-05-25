@@ -9,8 +9,7 @@ use App\Http\Requests\AdminRegisterRequest;
 
 class AuthController extends Controller
 {
-  // تسجيل حساب أدمن
-public function register(Request $request)
+ public function register(Request $request)
 {
     $validated = $request->validate([
         'first_name' => 'required|string',
@@ -32,17 +31,18 @@ public function register(Request $request)
 
 public function login(Request $request)
 {
+    //هون عم نطلب من المستخدم يجيب اسم المستخدم وكلمة السر يلي الو
     $request->validate([
         'username' => 'required|string',
         'password' => 'required|string',
     ]);
-
+    //هون عم ندور بقاعدة البيانات من خلال الاستعلامات اذا البيانات يلي كتبها المستخدم صح او لا
     $user = User::where('username', $request->username)->first();
-
+    //هون اذا لقينا اسم المستخدم غلط او كلمة السر خطا منرجع برسالة انو البيانات المعتمدة غير صحيحىة
     if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'اسم المستخدم او كلمة المرور غير صحيحة '], 401);
+        return response()->json(['message' => 'اسم المستخدم او كلمة المرور غير صحيحة ' , 'status' => 401], 401);
     }
-
+    // اذا الامور تمام منولد توكن ( رمز دخول ) باستخدام LARAVEL SANCTUM وهاد الرمز بيستخدم بالتطبيق لحتى يضل مسجل دخول
     $token = $user->createToken('auth_token')->plainTextToken;
 
     return response()->json(['token' => $token, 'role' => $user->role , 'status' => 200] );
@@ -58,7 +58,5 @@ public function profile(Request $request)
 {
     return response()->json($request->user());
 }
-
-
 
 }

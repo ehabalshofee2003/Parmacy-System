@@ -28,7 +28,6 @@ class ShiftController extends Controller
 
         return response()->json(['message' => 'تم بدء الوردية بنجاح.', 'shift' => $shift] , 201);
     }
-
     // إنهاء وردية
     public function end(Request $request)
     {
@@ -51,14 +50,12 @@ class ShiftController extends Controller
 
         return response()->json(['message' => 'تم إنهاء الوردية.', 'shift' => $shift] , 200 );
     }
-
     // جلب الورديات الخاصة بالمستخدم
     public function userShifts()
     {
         $user = Auth::user();
         return response()->json(Shift::where('user_id', $user->id)->latest()->get());
     }
-
     // الورديّة الحالية
     public function current()
     {
@@ -66,7 +63,6 @@ class ShiftController extends Controller
         $shift = Shift::where('user_id', $user->id)->where('status', 'active')->first();
         return response()->json(['shift' => $shift]);
     }
-
     // ملخص وردية محددة
     public function summary($id)
     {

@@ -22,7 +22,6 @@ public function show($id)
 
     return response()->json($bill);
 }
-
      public function store(Request $request)
 {
     $request->validate([

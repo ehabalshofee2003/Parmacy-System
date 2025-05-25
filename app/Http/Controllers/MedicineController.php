@@ -12,7 +12,7 @@ use App\Models\category;
 class MedicineController extends Controller
 {
     /*
-     ✅ عرض كل الأدوية
+ ✅ عرض كل الأدوية
 
 ✅ عرض دواء محدد
 
@@ -22,7 +22,6 @@ class MedicineController extends Controller
 
 ✅ حذف دواء
 */
-
 public function index(Request $request)
 {
     $query = Medicine::query();
@@ -65,7 +64,6 @@ public function index(Request $request)
     // 📄 النتائج مع ترقيم الصفحات
     return response()->json([$query->paginate(10),      'status' => 200,]);
 }
-
 /*
 🧪 أمثلة على طلبات Postman
 نوع الفلترة	رابط الـ API
@@ -82,11 +80,7 @@ public function index(Request $request)
 حسب السعر تنازليًا	/api/medicines?sort_by=consumer_price&sort_order=desc
 حسب تاريخ الانتهاء	/api/medicines?sort_by=expiry_date&sort_order=asc
 حسب الاسم العربي تنازليًا	/api/medicines?sort_by=name_ar&sort_order=desc
-
-
-
 */
-
  public function show($id)
 {
     $medicine = Medicine::find($id);
@@ -100,8 +94,7 @@ public function index(Request $request)
         'data' => new MedicineResource($medicine)
     ], 200);
 }
-
-    public function store(StoreMedicineRequest  $request)
+public function store(StoreMedicineRequest  $request)
     {
         $validated = $request->validated();
         $medicine = Medicine::create($validated);
@@ -112,9 +105,8 @@ public function index(Request $request)
 ])
         ->response()
         ->setStatusCode(201);
-    }
-
-    public function update(UpdateMedicineRequest  $request, $id)
+}
+ public function update(UpdateMedicineRequest  $request, $id)
     {
         $medicine = Medicine::find($id);
 
@@ -134,9 +126,8 @@ public function index(Request $request)
     ->response()
     ->setStatusCode(200);
 
-    }
-
-    public function destroy($id)
+}
+public function destroy($id)
     {
         $medicine = Medicine::find($id);
 
@@ -147,5 +138,5 @@ public function index(Request $request)
         $medicine->delete();
 
         return response()->json(['message' => 'تم حذف الدواء بنجاح', 'status' => 204,] , 204);
-    }
+ }
 }
