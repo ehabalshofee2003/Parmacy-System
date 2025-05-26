@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('medicines', function (Blueprint $table) {
-           $table->bigIncrements('id');
+            $table->bigIncrements('id');
             $table->string('name_en');                    // الاسم الأجنبي
             $table->string('name_ar');                    // الاسم العربي
             $table->string('barcode')->unique();          // رقم الباركود

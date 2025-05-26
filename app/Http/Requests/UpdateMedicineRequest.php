@@ -32,7 +32,6 @@ class UpdateMedicineRequest extends FormRequest
             'expiry_date'         => 'required|date',
             'pharmacy_price'      => 'required|numeric|min:0',
             'consumer_price'      => 'required|numeric|min:0',
-            'discount'            => 'nullable|numeric|min:0|max:100',
             'barcode'             => 'nullable|string|unique:medicines,barcode,' . $medicineId,
             'form'                => 'nullable|string',
             'size'                => 'nullable|string',
@@ -70,10 +69,6 @@ class UpdateMedicineRequest extends FormRequest
             'consumer_price.required'     => 'سعر المستهلك مطلوب.',
             'consumer_price.numeric'      => 'سعر المستهلك يجب أن يكون رقمًا.',
             'consumer_price.min'          => 'سعر المستهلك لا يمكن أن يكون أقل من 0.',
-
-            'discount.numeric'            => 'قيمة الخصم يجب أن تكون رقمًا.',
-            'discount.min'                => 'قيمة الخصم لا يمكن أن تكون أقل من 0.',
-            'discount.max'                => 'قيمة الخصم لا يمكن أن تتجاوز 100.',
 
             'barcode.string'              => 'الباركود يجب أن يكون نصًا.',
             'barcode.unique'              => 'الباركود مستخدم من قبل.',

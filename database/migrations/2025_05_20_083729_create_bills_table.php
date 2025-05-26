@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bills', function (Blueprint $table) {
+ Schema::create('bills', function (Blueprint $table) {
     $table->id();
     $table->string('bill_number')->unique();
     $table->foreignId('user_id')->constrained()->onDelete('cascade');
     $table->decimal('total_amount', 10, 2);
-    $table->decimal('discount_amount', 10, 2)->default(0);
-    //المبلغ الصافي بعد الخصم
-    $table->decimal('net_amount', 10, 2);
     $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
     $table->timestamps();
         });

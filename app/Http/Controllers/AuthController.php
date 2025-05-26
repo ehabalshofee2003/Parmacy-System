@@ -6,27 +6,37 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\AdminRegisterRequest;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
- public function register(Request $request)
+public function register(Request $request)
 {
-    $validated = $request->validate([
-        'first_name' => 'required|string',
-        'last_name' => 'required|string',
-        'username' => 'required|unique:users',
-        'phone' => 'required',
-        'password' => 'required|confirmed',
-    ]);
+    try {
+        $validated = $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'username' => 'required|unique:users',
+            'phone' => 'required',
+            'password' => 'required|confirmed',
+        ]);
 
-    $validated['password'] = bcrypt($validated['password']);
-    $validated['role'] = 'admin'; // فقط الأدمن يستطيع التسجيل
+        $validated['password'] = bcrypt($validated['password']);
+        $validated['role'] = 'admin';
 
-    $user = User::create($validated);
+        $user = User::create($validated);
 
-    $token = $user->createToken('admin_token')->plainTextToken;
+        $token = $user->createToken('admin_token')->plainTextToken;
 
-    return response()->json(['token' => $token , 'status' => 201]);
+        return response()->json(['token' => $token, 'status' => 201], 201);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'message' => 'Validation Failed',
+            'errors' => $e->errors() ,
+            'status' => 422
+        ], 422); // أو غيرها إن أردت مثل 400
+    }
 }
 
 public function login(Request $request)

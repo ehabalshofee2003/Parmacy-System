@@ -86,7 +86,7 @@ public function index(Request $request)
     $medicine = Medicine::find($id);
 
     if (!$medicine) {
-        return response()->json(['message' => 'الدواء غير موجود'], 404);
+        return response()->json(['message' => 'الدواء غير موجود' , 'status' => 404], 404);
     }
 
     return response()->json([
@@ -98,7 +98,6 @@ public function store(StoreMedicineRequest  $request)
     {
         $validated = $request->validated();
         $medicine = Medicine::create($validated);
-
          return (new MedicineResource($medicine))
         ->additional(['message' => 'تمت الإضافة بنجاح.',
                 'status' => 201,
@@ -111,7 +110,7 @@ public function store(StoreMedicineRequest  $request)
         $medicine = Medicine::find($id);
 
         if (!$medicine) {
-            return response()->json(['message' => 'الدواء غير موجود'], 404);
+            return response()->json(['message' => 'الدواء غير موجود' , 'status' => 404], 404);
         }
 
         $validated = $request->validated();
@@ -132,7 +131,7 @@ public function destroy($id)
         $medicine = Medicine::find($id);
 
         if (!$medicine) {
-            return response()->json(['message' => 'الدواء غير موجود'], 404);
+            return response()->json(['message' => 'الدواء غير موجود' , 'status' => 404], 404);
         }
 
         $medicine->delete();

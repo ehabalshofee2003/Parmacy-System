@@ -9,12 +9,11 @@ class Medicine extends Model
 {
     use HasFactory;
     protected $guarded = [];
-       protected $fillable = [
+    protected $fillable = [
         'name_en',
         'name_ar',
         'pharmacy_price',
         'consumer_price',
-        'discount',
         'barcode',
         'category_id',
         'form',

@@ -34,7 +34,6 @@ public function show($id)
 
     try {
         $totalAmount = 0;
-        $totalDiscount = 0;
 
         foreach ($request->items as $item) {
             $medicine = Medicine::findOrFail($item['medicine_id']);
@@ -44,13 +43,10 @@ public function show($id)
             }
 
             $itemTotal = $medicine->consumer_price * $item['quantity'];
-            $itemDiscount = ($medicine->discount / 100) * $itemTotal;
             $totalAmount += $itemTotal;
-            $totalDiscount += $itemDiscount;
 
         }
 
-        $netAmount = $totalAmount - $totalDiscount;
 
         // توليد رقم فاتورة فريد (مثال بسيط - يمكن تحسينه لاحقًا)
         $billNumber = 'BILL-' . time() . '-' . rand(1000, 9999);
@@ -60,8 +56,6 @@ public function show($id)
             'bill_number'     => $billNumber,
             'user_id'         => auth()->id(),
             'total_amount'    => $totalAmount,
-            'discount_amount' => $totalDiscount,
-            'net_amount'      => $netAmount,
             'status'          => 'pending', // أو يمكن جعله 'approved' تلقائيًا إن رغبت
         ]);
 
@@ -74,8 +68,7 @@ public function show($id)
                 'medicine_id' => $medicine->id,
                 'quantity'    => $item['quantity'],
                 'unit_price'  => $medicine->consumer_price,
-                'discount'    => $medicine->discount,
-            ]);
+             ]);
 
             // خصم الكمية من المخزون
             $medicine->stock_quantity -= $item['quantity'];
@@ -113,7 +106,7 @@ public function destroy($id)
 
     return response()->json(['message' => 'تم حذف الفاتورة']);
 }
-public function get_info_from_bills(){
+public function get_info_from_bills($id){
 
 }
 }

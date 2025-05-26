@@ -9,9 +9,11 @@ class Bill_item extends Model
 {
     use HasFactory;
        protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'bill_id',
+        'medicines_id',
+        'quantity',
+        'unit_price',
+        'total_price'
     ];
     public function Bills() {
     return $this->belongsTo(Bill::class);

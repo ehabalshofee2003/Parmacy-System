@@ -30,7 +30,6 @@ class StoreMedicineRequest extends FormRequest
             'category_id'      => 'required|integer',
             'pharmacy_price'   => 'required|numeric',
             'consumer_price'   => 'required|numeric',
-            'discount'         => 'nullable|numeric',
             'barcode'           => 'nullable|string|unique:medicines,barcode',
             'form'             => 'nullable|string',
             'size'             => 'nullable|string',
@@ -66,8 +65,6 @@ class StoreMedicineRequest extends FormRequest
 
         'consumer_price.required' => 'سعر المستهلك مطلوب.',
         'consumer_price.numeric' => 'سعر المستهلك يجب أن يكون رقماً.',
-
-        'discount.numeric' => 'قيمة الخصم يجب أن تكون رقماً.',
 
         'barcode.string' => 'الباركود يجب أن يكون نصاً.',
         'barcode.unique' => ' الباركود.يجب الا يتكرر',

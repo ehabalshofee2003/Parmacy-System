@@ -18,7 +18,7 @@ public function handle(Request $request, Closure $next, $role)
         $user = $request->user();
 
         if (!$user || $user->role !== $role) {
-            return response()->json(['message' => 'ليس لديك الصلاحية لتنفيذ هذا الإجراء.'], 403);
+            return response()->json(['message' => 'ليس لديك الصلاحية لتنفيذ هذا الإجراء.' , 'status' => 403], 403);
         }
 
         return $next($request);
