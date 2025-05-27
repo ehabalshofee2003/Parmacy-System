@@ -26,7 +26,7 @@ protected $fillable = [
     'is_active',
     'password',
 ];
-
+ 
 protected $hidden = ['password'];
 
     /**

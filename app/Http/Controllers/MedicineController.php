@@ -138,4 +138,27 @@ public function destroy($id)
 
         return response()->json(['message' => 'تم حذف الدواء بنجاح', 'status' => 204,] , 204);
  }
+  public function scan(Request $request)
+    {
+        $request->validate([
+            'barcode' => 'required|string',
+        ]);
+
+        $medicine = Medicine::where('barcode', $request->barcode)->first();
+
+        if (!$medicine) {
+            return response()->json([
+                'message' => 'الدواء غير موجود',
+            ], 404);
+        }
+
+        return response()->json([
+            'id' => $medicine->id,
+            'name_en' => $medicine->name_en,
+            'name_ar' => $medicine->name_ar,
+            'category_id' => $medicine->category_id,
+            'consumer_price' => $medicine->consumer_price,
+            'expiry_date' => $medicine->expiry_date
+        ]);
+    }
 }

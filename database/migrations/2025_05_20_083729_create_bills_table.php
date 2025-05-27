@@ -16,7 +16,7 @@ return new class extends Migration
     $table->string('bill_number')->unique();
     $table->foreignId('user_id')->constrained()->onDelete('cascade');
     $table->decimal('total_amount', 10, 2);
-    $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+    $table->enum('status', ['pending', 'sended'])->default('pending');
     $table->timestamps();
         });
     }
