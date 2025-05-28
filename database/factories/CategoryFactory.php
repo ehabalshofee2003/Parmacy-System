@@ -18,7 +18,12 @@ class CategoryFactory extends Factory
     {
         return [
           'name' => $this->faker->word(),
-
+'image' => $this->faker->image(
+    storage_path('app/public/images'), // مكان الحفظ
+    640, 480, // أبعاد الصورة
+    null,     // فئة الصورة (مثلاً animals أو people)
+    false     // ترجع فقط اسم الملف
+),
         ];
     }
 }

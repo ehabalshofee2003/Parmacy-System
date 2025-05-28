@@ -11,6 +11,12 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
    use HasApiTokens, HasFactory, Notifiable;
+    protected $table = "users";
+    protected $guarded = ["id"];
+    protected $hidden = [
+        'password',
+    ];
+
 
     /**
      * The attributes that are mass assignable.
@@ -26,8 +32,8 @@ protected $fillable = [
     'is_active',
     'password',
 ];
- 
-protected $hidden = ['password'];
+
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -63,5 +69,8 @@ public function auditLogs() {
 public function reports() {
     return $this->hasMany(Report::class);
 }
+ public function chat(){
+        return $this->hasMany(Chat::class , 'created_by');
+    }
 
 }

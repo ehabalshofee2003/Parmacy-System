@@ -23,17 +23,18 @@ class MedicineFactory extends Factory
             'consumer_price' => $this->faker->randomFloat(2, 10, 100),
             'discount' => $this->faker->optional()->randomFloat(2, 0, 20),
             'barcode' => $this->faker->ean13(),
-            'form' => $this->faker->randomElement(['حبوب', 'شراب', 'مرهم']),
-            'size' => $this->faker->randomElement(['100ml', '20 حبة']),
             'composition' => $this->faker->sentence(),
-            'description' => $this->faker->optional()->paragraph(),
-            'stock_quantity' => $this->faker->numberBetween(10, 500),
-             'expiry_date' => $this->faker->dateTimeBetween('+1 months', '+2 years'),
+            'stock_quantity' => $this->faker->numberBetween(10, 500),             'expiry_date' => $this->faker->dateTimeBetween('+1 months', '+2 years'),
             'manufacturer' => $this->faker->company(),
             'country_of_origin' => $this->faker->country(),
             'needs_prescription' => $this->faker->boolean(),
-                    'category_id' => Category::inRandomOrder()->first()?->id ?? Category::factory(),
-
+            'category_id' => Category::inRandomOrder()->first()?->id ?? Category::factory(),
+'image' => $this->faker->image(
+    storage_path('app/public/images'), // مكان الحفظ
+    640, 480, // أبعاد الصورة
+    null,     // فئة الصورة (مثلاً animals أو people)
+    false     // ترجع فقط اسم الملف
+),
          ];
     }
 }

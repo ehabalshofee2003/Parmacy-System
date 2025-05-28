@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name_ar');                    // الاسم العربي
             $table->string('barcode')->unique();          // رقم الباركود
             $table->unsignedBigInteger('category_id'); // مفتاح أجنبي لصنف الدواء
+            $table->string('image')->nullable();
             $table->string('manufacturer');               // اسم الشركة المصنعة
             $table->string('country_of_origin');          // بلد المنشأ
             $table->decimal('pharmacy_price', 8, 2);      // سعر الشراء من المستودع
@@ -24,10 +25,7 @@ return new class extends Migration
             $table->decimal('discount', 5, 2)->nullable(); // نسبة الخصم (اختياري)
             $table->integer('stock_quantity');            // الكمية بالمخزن
             $table->date('expiry_date');                  // تاريخ انتهاء الصلاحية
-            $table->string('form');                       // الشكل (حب، شراب...)
-            $table->string('size');                       // الحجم (100ml...)
             $table->text('composition');                  // التركيبة الدوائية
-            $table->text('description')->nullable();      // وصف إضافي
             $table->boolean('needs_prescription')->default(false); // هل يحتاج لوصفة طبية؟
             $table->timestamps();                         // created_at و updated_at
 

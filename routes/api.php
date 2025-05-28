@@ -31,8 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
         Route::apiResource('medicines', MedicineController::class);
         Route::apiResource('categories', CategoryController::class);
-
-
+ 
 
     });
 
@@ -45,7 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/shift/end', [ShiftController::class, 'end']);
         Route::get('/shift/summary/{id}', [ShiftController::class, 'summary']);
         Route::post('/scan-barcode', [MedicineController::class, 'scan']);
-
 
     });
 });

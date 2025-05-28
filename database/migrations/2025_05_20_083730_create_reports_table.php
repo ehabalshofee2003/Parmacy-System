@@ -14,7 +14,7 @@ return new class extends Migration
 Schema::create('reports', function (Blueprint $table) {
     $table->id();
     $table->foreignId('admin_id')->constrained('users')->onDelete('cascade');
-    $table->string('report_type');
+    $table->enum('report_type', ['daily', 'weekly', 'monthly']);
     $table->decimal('total_sales', 10, 2);
     $table->integer('total_income');
     $table->string('Top_medicine');
