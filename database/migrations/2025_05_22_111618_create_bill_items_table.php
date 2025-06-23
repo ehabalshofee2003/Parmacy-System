@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('bill_id')->constrained()->onDelete('cascade');
             $table->enum('item_type', ['medicine', 'supply'])->default('medicine');
             $table->unsignedBigInteger('item_id');
-            $table->integer('quantity');
+            $table->integer('stock_quantity');
             $table->decimal('unit_price', 8, 2);
             $table->decimal('total_price', 10, 2);
             $table->timestamps();

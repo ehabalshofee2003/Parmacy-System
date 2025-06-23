@@ -15,39 +15,52 @@ Route::post('/admin/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+            //LOGOUT
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/profile', [AuthController::class, 'profile']);
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
-    Route::get('/categories/{id}/medicines', [CategoryController::class, 'medicines']);
-    Route::apiResource('categories', CategoryController::class)->only(['show','index']);
-    Route::get('/drugs/search', [MedicineController::class, 'search']);
-    Route::get('/supplies/search', [SupplyController::class, 'search']);
-    Route::middleware('isAdmin')->group(function () {
-        Route::get('/admin/users', [UserController::class, 'index']);
-        Route::post('/admin/users', [UserController::class, 'store']);
-        Route::put('/admin/users/{id}', [UserController::class, 'update']);
-        Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
-        Route::apiResource('medicines', MedicineController::class);
-        Route::apiResource('categories', CategoryController::class);
+            //SUPPLIES
+            Route::get('/supplies/search', [SupplyController::class, 'search']);
+            Route::get('/supplies', [SupplyController::class, 'index']);          // عرض
+            Route::get('/supplies/{id}', [SupplyController::class, 'show']);
+            Route::get('/supplies/category/{categoryId}', [SupplyController::class, 'getByCategory']); // حسب الصنف
+            //MEDICINES
+            Route::get('/allMedicines', [MedicineController::class, 'index']);//استعراض جميع الادوية بدون تصنيف
+            Route::get('/medicine', [MedicineController::class, 'index']); // كل الأدوية
+            Route::get('/medicine/{id}', [MedicineController::class, 'show']); // دواء محدد
+            Route::get('/medicine/category/{categoryId}', action: [MedicineController::class, 'getByCategory']); // حسب الصنف
+            Route::get('/drugs/search', [MedicineController::class, 'search']);
+
+Route::middleware('isAdmin')->group(function () {
+            Route::get('/admin/users', [UserController::class, 'index']);
+            Route::post('/admin/users', [UserController::class, 'store']);
+            Route::put('/admin/users/{id}', [UserController::class, 'update']);
+            Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
+            Route::post('/supplies', [SupplyController::class, 'store']);         // إضافة
+            Route::put('/supplies/{id}', [SupplyController::class, 'update']);    // تعديل
+            Route::delete('/supplies/{id}', [SupplyController::class, 'destroy']); // حذف
+            Route::post('/medicines', [MedicineController::class, 'store']);
+            Route::put('/medicines/{id}', [MedicineController::class, 'update']);   // تحديث
+            Route::delete('/medicines/{id}', [MedicineController::class, 'destroy']); // حذف
+            Route::apiResource('categories', CategoryController::class);
 
     });
 
 Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
         // راوتات خاصة بالموظف الصيدلي
-        Route::apiResource('bills', BillController::class)->only(['store', 'index', 'show']);
-        Route::apiResource('medicines', MedicineController::class)->only(['index','show']);
-        Route::post('/cart', [CartController::class, 'store']); // add items to cart
-        Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
-        Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
-        Route::delete('/cart/{id}', [CartController::class, 'deleteCart']);//حذف السلة
-        Route::delete('/cart/all', [CartController::class, 'deleteAllCartsForCurrentPharmacist']);//حذف جميع السلل الموجودة
-        Route::post('/cart/{id}/confirm', [CartController::class, 'confirmCart']);//تاكيد السلة الى فاتوروة
-        Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
-        Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
-        Route::post('/scan-barcode', [MedicineController::class, 'scan']);
-        Route::get('supplies/category/{id}',[SupplyController::class , 'getByCategory']);//استعراض المستلزمات المرتبطة بصنف معين
-        Route::get('supplies/{id}',[SupplyController::class , 'show']);//استعراض تفاصيل مستلزم معين
-        Route::get('/bills/{id}', [BillController::class, 'show']);
+            Route::post('/cart', [CartController::class, 'store']); // add items to cart
+            Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
+            Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
+            Route::delete('/cart/{id}', [CartController::class, 'deleteCart']);//حذف السلة
+            Route::delete('/cart/all', [CartController::class, 'deleteAllCartsForCurrentPharmacist']);//حذف جميع السلل الموجودة
+            Route::post('/cart/{id}/confirm', [CartController::class, 'confirmCart']);//تاكيد السلة الى فاتوروة
+            Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
+            Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
+            Route::post('/scan-barcode', [MedicineController::class, 'scan']);
+            Route::get('/bills/{id}', [BillController::class, 'show']);//استعراض تفاصيل فاتورة مؤكدة
+            Route::get('/bills', [BillController::class, 'index']);//استعراض جميع الفواتير المؤكدة
+            Route::post('/bills/send/{id}', [BillController::class, 'sendSingleBillToAdmin']);//ارسال فاتورة مؤكدة للادمن
+            Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
 
     });
 });

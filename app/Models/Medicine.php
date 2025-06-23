@@ -9,20 +9,24 @@ class Medicine extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $fillable = [
-        'name_en',
-        'name_ar',
-        'pharmacy_price',
-        'consumer_price',
-        'barcode',
-        'category_id',
-        'image',
-        'composition',
-        'stock_quantity',
-        'expiry_date',
-        'manufacturer',
-        'needs_prescription',
-     ];
+protected $fillable = [
+    'name_en',
+    'name_ar',
+    'barcode',
+    'category_id',
+    'image_url',
+    'manufacturer',
+    'pharmacy_price',
+    'consumer_price',
+    'discount',
+    'stock_quantity',
+    'expiry_date',
+    'composition',
+    'needs_prescription',
+    'reorder_level',
+    'admin_id',
+];
+
 
  protected $casts = [
         'discount' => 'float',

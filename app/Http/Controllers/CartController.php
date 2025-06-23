@@ -189,7 +189,7 @@ public function confirmCart($id)
         // إذا السلة مؤكدة مسبقًا، نرجع خطأ
         if ($cart->status !== 'pending') {
             return response()->json([
-                'status' => false,
+                'status' => 403,
                 'message' => 'السلة مؤكدة أو ملغاة بالفعل.'
             ], 403);
         }
@@ -197,7 +197,7 @@ public function confirmCart($id)
         // إذا السلة فاضية، ما في داعي نأكدها
         if ($cart->items->isEmpty()) {
             return response()->json([
-                'status' => false,
+                'status' => 400,
                 'message' => 'لا يمكن تأكيد سلة فارغة.'
             ], 400);
         }
@@ -238,7 +238,7 @@ public function confirmCart($id)
 
         // نرجع رد JSON يحتوي على بيانات الفاتورة الجديدة
         return response()->json([
-            'status' => true,
+            'status' => 200,
             'message' => 'تم تأكيد السلة وتحويلها إلى فاتورة بنجاح.',
             'data' => new BillResource($bill),
         ]);
@@ -247,7 +247,7 @@ public function confirmCart($id)
         DB::rollBack();
 
         return response()->json([
-            'status' => false,
+            'status' => 500,
             'message' => 'فشل في تأكيد السلة.',
             'error' => $e->getMessage()
         ], 500);

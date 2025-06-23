@@ -43,125 +43,138 @@ public function search(SearchDrugRequest $request)
             'message' => 'نتائج البحث عن الأدوية:',
             'data' => DrugResource::collection($results)
         ]);
-    }
-
-public function index(Request $request)
-{
-    $query = Medicine::query();
-
-    // 🔍 فلترة بالاسم
-    if ($request->has('search') && $request->search !== null) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('name_en', 'like', "%$search%")
-              ->orWhere('name_ar', 'like', "%$search%");
-        });
-    }
-
-
-
-    // ⏳ فلترة حسب تاريخ الانتهاء
-    if ($request->has('expiry_before')) {
-        $query->where('expiry_date', '<=', $request->expiry_before);
-    }
-
-    if ($request->has('expiry_after')) {
-        $query->where('expiry_date', '>=', $request->expiry_after);
-    }
-
-    // 💊 فلترة حسب الحاجة لوصفة
-    if ($request->has('needs_prescription')) {
-        $query->where('needs_prescription', $request->needs_prescription);
-    }
-
-    // 🔃 الترتيب
-    $sortFields = ['name_en', 'name_ar', 'consumer_price', 'expiry_date'];
-    $sortBy = in_array($request->get('sort_by'), $sortFields) ? $request->get('sort_by') : 'id';
-    $sortOrder = $request->get('sort_order') === 'desc' ? 'desc' : 'asc';
-
-    $query->orderBy($sortBy, $sortOrder);
-
-    // 📄 النتائج مع ترقيم الصفحات
-    return response()->json([$query->paginate(10),      'status' => 200,]);
 }
-/*
-🧪 أمثلة على طلبات Postman
-نوع الفلترة	رابط الـ API
-الاسم يحتوي على "panadol"	/api/medicines?search=panadol
-السعر أقل من أو يساوي 50	/api/medicines?max_price=50
-انتهاء الصلاحية قبل 2025-12-01	/api/medicines?expiry_before=2025-12-01
-انتهاء الصلاحية بعد 2025-06-01	/api/medicines?expiry_after=2025-06-01
-يحتاج وصفة فقط	/api/medicines?needs_prescription=1
-دمج بين الكل	/api/medicines?search=para&max_price=30&expiry_before=2026-01-01&needs_prescription=1
 
-🧪 أمثلة على روابط Postman للترتيب:
-الترتيب المطلوب	رابط الـ API
-حسب السعر تصاعديًا	/api/medicines?sort_by=consumer_price&sort_order=asc
-حسب السعر تنازليًا	/api/medicines?sort_by=consumer_price&sort_order=desc
-حسب تاريخ الانتهاء	/api/medicines?sort_by=expiry_date&sort_order=asc
-حسب الاسم العربي تنازليًا	/api/medicines?sort_by=name_ar&sort_order=desc
-*/
+
 //show detals for medicien
  public function show($id)
 {
-    $medicine = Medicine::find($id);
+    try {
+        $medicine = Medicine::findOrFail($id);
 
-    if (!$medicine) {
-        return response()->json(['message' => 'الدواء غير موجود' , 'status' => 404], 404);
+        return response()->json([
+            'status' => true,
+            'message' => 'تفاصيل الدواء.',
+            'data' => new MedicineResource($medicine),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في جلب تفاصيل الدواء.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
+ public function getByCategory($categoryId)
+{
+    try {
+        $medicines = Medicine::where('category_id', $categoryId)->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم جلب الأدوية حسب الصنف.',
+            'data' => MedicineResource::collection($medicines),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في جلب الأدوية حسب الصنف.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+public function index()
+{
+    try {
+        $medicines = Medicine::orderBy('name_en')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم جلب جميع الأدوية.',
+            'data' => MedicineResource::collection($medicines),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في جلب الأدوية.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+// add a new medicien by admin only
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name_en' => 'required|string|max:255',
+        'name_ar' => 'required|string|max:255',
+        'barcode' => 'required|string|max:255|unique:medicines,barcode',
+        'category_id' => 'required|exists:categories,id',
+        'image_url' => 'nullable|url', // ✅ تأكد من أنه رابط إنترنت صالح
+        'manufacturer' => 'required|string|max:255',
+        'pharmacy_price' => 'required|numeric|min:0',
+        'consumer_price' => 'required|numeric|min:0',
+        'discount' => 'nullable|numeric|min:0|max:100',
+        'stock_quantity' => 'required|integer|min:0',
+        'expiry_date' => 'required|date|after:today',
+        'composition' => 'required|string',
+        'needs_prescription' => 'boolean',
+        'reorder_level' => 'nullable|integer|min:0',
+        'admin_id' => 'nullable|exists:users,id',
+    ]);
+
+    $medicine = Medicine::create($validated);
 
     return response()->json([
-        'status' => 200,
-        'data' => new MedicineResource($medicine)
-    ], 200);
-
+        'message' => '✅ تم إضافة الدواء بنجاح',
+        'data' => $medicine
+    ], 201);
 }
-// add a new medicien by admin only
-public function store(StoreMedicineRequest  $request)
-    {
-        $validated = $request->validated();
-        $medicine = Medicine::create($validated);
-         return (new MedicineResource($medicine))
-        ->additional(['message' => 'تمت الإضافة بنجاح.',
-                'status' => 201,
-])
-        ->response()
-        ->setStatusCode(201);
-}
-//
- public function update(UpdateMedicineRequest  $request, $id)
-    {
-        $medicine = Medicine::find($id);
 
-        if (!$medicine) {
-            return response()->json(['message' => 'الدواء غير موجود' , 'status' => 404], 404);
-        }
+public function update(Request $request, $id)
+{
+    $medicine = Medicine::findOrFail($id);
 
-        $validated = $request->validated();
-        $medicine->update($validated);
+    $validated = $request->validate([
+        'name_en' => 'sometimes|string|max:255',
+        'name_ar' => 'sometimes|string|max:255',
+        'barcode' => 'sometimes|string|max:255|unique:medicines,barcode,' . $id,
+        'category_id' => 'sometimes|exists:categories,id',
+        'image_url' => 'nullable|url',
+        'manufacturer' => 'sometimes|string|max:255',
+        'pharmacy_price' => 'sometimes|numeric|min:0',
+        'consumer_price' => 'sometimes|numeric|min:0',
+        'discount' => 'nullable|numeric|min:0|max:100',
+        'stock_quantity' => 'sometimes|integer|min:0',
+        'expiry_date' => 'sometimes|date|after:today',
+        'composition' => 'sometimes|string',
+        'needs_prescription' => 'sometimes|boolean',
+        'reorder_level' => 'sometimes|integer|min:0',
+        'admin_id' => 'nullable|exists:users,id',
+    ]);
 
- return (new MedicineResource($medicine))
-    ->additional([
-        'message' => 'تم التحديث بنجاح.',
-                'status' => 200,
+    $medicine->update($validated);
 
-    ])
-    ->response()
-    ->setStatusCode(200);
-
+    return response()->json([
+        'message' => '✅ تم تحديث بيانات الدواء بنجاح',
+        'data' => $medicine
+    ]);
 }
 public function destroy($id)
-    {
-        $medicine = Medicine::find($id);
+{
+    $medicine = Medicine::findOrFail($id);
+    $medicine->delete();
 
-        if (!$medicine) {
-            return response()->json(['message' => 'الدواء غير موجود' , 'status' => 404], 404);
-        }
+    return response()->json([
+        'message' => '🗑️ تم حذف الدواء بنجاح'
+    ]);
+}
 
-        $medicine->delete();
+//
 
-        return response()->json(['message' => 'تم حذف الدواء بنجاح', 'status' => 204,] , 204);
- }
  //قراءة الدواء من خلال الباركود
   public function scan(Request $request)
     {

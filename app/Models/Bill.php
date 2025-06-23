@@ -12,6 +12,7 @@ class Bill extends Model
         'bill_number',
         'user_id',
         'total_amount',
+        'status'
      ];
     public function user() {
     return $this->belongsTo(User::class);

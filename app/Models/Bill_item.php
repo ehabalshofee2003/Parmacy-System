@@ -10,8 +10,9 @@ class Bill_item extends Model
     use HasFactory;
        protected $fillable = [
         'bill_id',
-        'medicines_id',
-        'quantity',
+        'item_type',
+        'item_id',
+        'stock_quantity',
         'unit_price',
         'total_price'
     ];

@@ -22,6 +22,7 @@ class SupplyFactory extends Factory
             'pharmacy_price' => $this->faker->randomFloat(2, 1, 50),
             'consumer_price' => $this->faker->randomFloat(2, 10, 100),
             'discount' => $this->faker->optional()->randomFloat(2, 0, 20),
+            'image_url' => $this->faker->imageUrl(200, 200),
             'stock_quantity' => $this->faker->numberBetween(5, 100),
             'reorder_level' => 10,
         ];

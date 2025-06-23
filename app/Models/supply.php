@@ -15,6 +15,7 @@ class supply extends Model
     'consumer_price',
     'discount',
     'stock_quantity',
+    'image'
     ];
     public function category()
 {

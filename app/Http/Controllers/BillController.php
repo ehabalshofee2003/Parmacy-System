@@ -47,6 +47,94 @@ public function show($id)
     }
 }
 
+public function index()
+{
+    try {
+        if (auth()->user()->role !== 'pharmacist') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
- 
+        // جلب كل الفواتير الخاصة بالصيدلي الحالي
+        $bills = Bill::with('items')
+                    ->where('user_id', auth()->id())
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم جلب الفواتير بنجاح.',
+            'data' => BillResource::collection($bills)
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء جلب الفواتير.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+public function sendSingleBillToAdmin($id)
+{
+    try {
+        $bill = Bill::where('id', $id)
+                    ->where('user_id', auth()->id())
+                    ->where('status', 'pending')
+                    ->firstOrFail();
+
+        $bill->update([
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'تم إرسال الفاتورة إلى الأدمن بنجاح.',
+            'data' => new BillResource($bill),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'message' => 'فشل في إرسال الفاتورة.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+public function sendAllBillsToAdmin()
+{
+    try {
+        $bills = Bill::where('user_id', auth()->id())
+                    ->where('status', 'pending')
+                    ->get();
+
+        if ($bills->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'لا توجد فواتير لإرسالها.',
+            ]);
+        }
+
+        foreach ($bills as $bill) {
+            $bill->update([
+                'status' => 'sent',
+                'sent_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'تم إرسال جميع الفواتير بنجاح.',
+            'data' => BillResource::collection($bills),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'message' => 'حدث خطأ أثناء إرسال الفواتير.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
 }
