@@ -14,16 +14,11 @@ class CategoryFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
+   public function definition(): array
     {
         return [
-          'name' => $this->faker->word(),
-'image' => $this->faker->image(
-    storage_path('app/public/images'), // مكان الحفظ
-    640, 480, // أبعاد الصورة
-    null,     // فئة الصورة (مثلاً animals أو people)
-    false     // ترجع فقط اسم الملف
-),
+            'name' => $this->faker->word(),
+            'image_url' => $this->faker->imageUrl(200, 200),
         ];
     }
 }

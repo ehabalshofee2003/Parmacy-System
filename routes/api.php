@@ -7,12 +7,8 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BillController;
-use App\Http\Controllers\ShiftController;
-
-
-
-
-
+use App\Http\Controllers\SupplyController;
+use App\Http\Controllers\CartController;
 
 
 Route::post('/admin/register', [AuthController::class, 'register']);
@@ -23,7 +19,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::get('/categories/{id}/medicines', [CategoryController::class, 'medicines']);
-
+    Route::apiResource('categories', CategoryController::class)->only(['show','index']);
+    Route::get('/drugs/search', [MedicineController::class, 'search']);
+    Route::get('/supplies/search', [SupplyController::class, 'search']);
     Route::middleware('isAdmin')->group(function () {
         Route::get('/admin/users', [UserController::class, 'index']);
         Route::post('/admin/users', [UserController::class, 'store']);
@@ -31,19 +29,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/users/{id}', [UserController::class, 'destroy']);
         Route::apiResource('medicines', MedicineController::class);
         Route::apiResource('categories', CategoryController::class);
- 
 
     });
 
-    Route::middleware('isPharmacist')->group(function () {
+Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
         // راوتات خاصة بالموظف الصيدلي
         Route::apiResource('bills', BillController::class)->only(['store', 'index', 'show']);
-        Route::apiResource('categories', CategoryController::class)->only(['show','index']);
         Route::apiResource('medicines', MedicineController::class)->only(['index','show']);
-        Route::post('/shift/start', [ShiftController::class, 'start']);
-        Route::post('/shift/end', [ShiftController::class, 'end']);
-        Route::get('/shift/summary/{id}', [ShiftController::class, 'summary']);
+        Route::post('/cart', [CartController::class, 'store']); // add items to cart
+        Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
+        Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
+        Route::delete('/cart/{id}', [CartController::class, 'deleteCart']);//حذف السلة
+        Route::delete('/cart/all', [CartController::class, 'deleteAllCartsForCurrentPharmacist']);//حذف جميع السلل الموجودة
+        Route::post('/cart/{id}/confirm', [CartController::class, 'confirmCart']);//تاكيد السلة الى فاتوروة
+        Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
+        Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
         Route::post('/scan-barcode', [MedicineController::class, 'scan']);
+        Route::get('supplies/category/{id}',[SupplyController::class , 'getByCategory']);//استعراض المستلزمات المرتبطة بصنف معين
+        Route::get('supplies/{id}',[SupplyController::class , 'show']);//استعراض تفاصيل مستلزم معين
+        Route::get('/bills/{id}', [BillController::class, 'show']);
 
     });
 });

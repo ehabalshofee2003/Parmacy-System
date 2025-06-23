@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-     Schema::create('shifts', function (Blueprint $table) {
+        Schema::create('carts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->timestamp('start_time');
-            $table->timestamp('end_time')->nullable();
-            $table->decimal('total_sales', 10, 2)->default(0);
-            $table->enum('status', ['active', 'closed'])->default('active');
+            $table->foreignId('bill_id')->nullable()->constrained()->onDelete('cascade');
+            $table->string('customer_name')->nullable();
+            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('shifts');
+        Schema::dropIfExists('carts');
     }
 };

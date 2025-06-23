@@ -18,7 +18,7 @@ return new class extends Migration
     $table->decimal('total_amount', 10, 2);
     $table->enum('status', ['pending', 'sended'])->default('pending');
     $table->timestamps();
-        });
+    });
     }
 
     /**

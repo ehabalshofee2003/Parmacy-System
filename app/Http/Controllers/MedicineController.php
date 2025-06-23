@@ -5,23 +5,46 @@ namespace App\Http\Controllers;
 use App\Models\Medicine;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreMedicineRequest;
+use App\Http\Requests\SearchDrugRequest;
 use App\Http\Requests\UpdateMedicineRequest;
-
 use App\Http\Resources\MedicineResource;
-use App\Models\category;
+use App\Http\Resources\DrugResource;
 class MedicineController extends Controller
 {
-    /*
- ✅ عرض كل الأدوية
 
-✅ عرض دواء محدد
+// البحث عن دواء من خلال الاسم  / رقم الباركود /
+public function search(SearchDrugRequest $request)
+    {
+        $query = Medicine::query();
 
-✅ إنشاء دواء
+        if ($request->filled('barcode')) {
+            $query->where('barcode', $request->barcode);
+        }
 
-✅ تعديل دواء
+        if ($request->filled('name_en')) {
+            $query->where('name_en', 'like', '%' . $request->title . '%');
+        }
+         if ($request->filled('name_ar')) {
+            $query->where('name_ar', 'like', '%' . $request->title . '%');
+        }
 
-✅ حذف دواء
-*/
+        if ($request->filled('stock_quantity')) {
+            $query->where('stock_quantity', '>=', $request->stock_quantity);
+        }
+
+        if ($request->filled('expiry_date')) {
+            $query->where('expiry_date', $request->expiry_date);
+        }
+
+        $results = $query->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'نتائج البحث عن الأدوية:',
+            'data' => DrugResource::collection($results)
+        ]);
+    }
+
 public function index(Request $request)
 {
     $query = Medicine::query();
@@ -35,10 +58,7 @@ public function index(Request $request)
         });
     }
 
-    // 💵 فلترة حسب السعر الأعلى
-    if ($request->has('max_price') && is_numeric($request->max_price)) {
-        $query->where('consumer_price', '<=', $request->max_price);
-    }
+
 
     // ⏳ فلترة حسب تاريخ الانتهاء
     if ($request->has('expiry_before')) {
@@ -81,6 +101,7 @@ public function index(Request $request)
 حسب تاريخ الانتهاء	/api/medicines?sort_by=expiry_date&sort_order=asc
 حسب الاسم العربي تنازليًا	/api/medicines?sort_by=name_ar&sort_order=desc
 */
+//show detals for medicien
  public function show($id)
 {
     $medicine = Medicine::find($id);
@@ -93,7 +114,9 @@ public function index(Request $request)
         'status' => 200,
         'data' => new MedicineResource($medicine)
     ], 200);
+
 }
+// add a new medicien by admin only
 public function store(StoreMedicineRequest  $request)
     {
         $validated = $request->validated();
@@ -105,6 +128,7 @@ public function store(StoreMedicineRequest  $request)
         ->response()
         ->setStatusCode(201);
 }
+//
  public function update(UpdateMedicineRequest  $request, $id)
     {
         $medicine = Medicine::find($id);
@@ -138,6 +162,7 @@ public function destroy($id)
 
         return response()->json(['message' => 'تم حذف الدواء بنجاح', 'status' => 204,] , 204);
  }
+ //قراءة الدواء من خلال الباركود
   public function scan(Request $request)
     {
         $request->validate([

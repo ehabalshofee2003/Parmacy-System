@@ -21,7 +21,6 @@ Schema::create('reports', function (Blueprint $table) {
     $table->integer('expiring_soon');
     $table->integer('low_stock');
     $table->text('notes')->nullable();
-    //$table->text('content');
     $table->timestamps();
         });
     }

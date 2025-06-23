@@ -24,7 +24,10 @@ public function store(Request $request)
 {
     try {
         $validated = $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
             'username' => 'required|unique:users',
+            'phone' => 'required|string',
             'password' => 'required',
         ]);
 
@@ -67,13 +70,25 @@ public function update(Request $request, $id)
 
     // تحقق من البيانات المدخلة
     $validated = $request->validate([
+        'first_name' => 'sometimes|string',
+        'last_name' => 'sometimes|string',
         'username' => 'sometimes|string|unique:users,username,' . $id,
+        'phone' => 'sometimes|string',
         'password' => 'sometimes|string|min:6',
     ]);
 
     // تحديث الحقول المرسلة فقط
     if (isset($validated['username'])) {
         $user->username = $validated['username'];
+    }
+      if (isset($validated['first_name'])) {
+        $user->username = $validated['first_name'];
+    }
+      if (isset($validated['last_name'])) {
+        $user->username = $validated['last_name'];
+    }
+      if (isset($validated['phone'])) {
+        $user->username = $validated['phone'];
     }
 
     if (isset($validated['password'])) {

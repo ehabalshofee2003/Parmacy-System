@@ -72,5 +72,8 @@ public function reports() {
  public function chat(){
         return $this->hasMany(Chat::class , 'created_by');
     }
-
+public function hasRole($role)
+{
+    return $this->role === $role;
+}
 }

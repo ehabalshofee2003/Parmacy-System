@@ -25,4 +25,11 @@ public function items() {
     return $this->hasMany(Bill_item::class);
 }
 
+public function cart()
+{
+    return $this->hasOne(Cart::class);
+}
+
+
+
 }

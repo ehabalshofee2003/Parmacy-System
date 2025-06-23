@@ -13,7 +13,16 @@ return new class extends Migration
     {
         Schema::create('supplies', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->unsignedBigInteger('category_id');
+            $table->decimal('pharmacy_price', 8, 2);      // سعر الشراء من المستودع
+            $table->decimal('consumer_price', 8, 2);      // سعر البيع للمستهلك
+            $table->decimal('discount', 5, 2)->nullable(); // نسبة الخصم (اختياري)
+            $table->integer('stock_quantity');
+            $table->integer('reorder_level')->default(10); // ✅ احذف after
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->timestamps();
+
         });
     }
 

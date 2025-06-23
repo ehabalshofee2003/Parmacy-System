@@ -21,7 +21,6 @@ class Medicine extends Model
         'stock_quantity',
         'expiry_date',
         'manufacturer',
-        'country_of_origin',
         'needs_prescription',
      ];
 

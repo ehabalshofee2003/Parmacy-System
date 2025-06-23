@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
- Schema::create('bill_items', function (Blueprint $table) {
+        Schema::create('cart_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bill_id')->constrained()->onDelete('cascade');
+            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
             $table->enum('item_type', ['medicine', 'supply'])->default('medicine');
             $table->unsignedBigInteger('item_id');
-            $table->integer('quantity');
+            $table->integer('stock_quantity');
             $table->decimal('unit_price', 8, 2);
             $table->decimal('total_price', 10, 2);
             $table->timestamps();
+            
         });
     }
 
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bill_items');
+        Schema::dropIfExists('cart_items');
     }
 };

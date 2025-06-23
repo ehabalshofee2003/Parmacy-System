@@ -16,5 +16,8 @@ class category extends Model
     {
         return $this->hasMany(Medicine::class);
     }
-
+ public function supplies()
+    {
+        return $this->hasMany(supply::class);
+    }
 }

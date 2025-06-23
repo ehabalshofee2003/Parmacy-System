@@ -6,20 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('medicines', function (Blueprint $table) {
+      Schema::create('medicines', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name_en');                    // الاسم الأجنبي
             $table->string('name_ar');                    // الاسم العربي
             $table->string('barcode')->unique();          // رقم الباركود
             $table->unsignedBigInteger('category_id'); // مفتاح أجنبي لصنف الدواء
-            $table->string('image')->nullable();
+            $table->string('image_url')->nullable();
             $table->string('manufacturer');               // اسم الشركة المصنعة
-            $table->string('country_of_origin');          // بلد المنشأ
             $table->decimal('pharmacy_price', 8, 2);      // سعر الشراء من المستودع
             $table->decimal('consumer_price', 8, 2);      // سعر البيع للمستهلك
             $table->decimal('discount', 5, 2)->nullable(); // نسبة الخصم (اختياري)
@@ -27,9 +23,11 @@ return new class extends Migration
             $table->date('expiry_date');                  // تاريخ انتهاء الصلاحية
             $table->text('composition');                  // التركيبة الدوائية
             $table->boolean('needs_prescription')->default(false); // هل يحتاج لوصفة طبية؟
-            $table->timestamps();                         // created_at و updated_at
-
-                $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->integer('reorder_level')->default(10);
+            $table->unsignedBigInteger('admin_id')->nullable();
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('admin_id')->references('id')->on('users')->onDelete('set null'); // قيد أجنبي
+            $table->timestamps();
 
         });
     }

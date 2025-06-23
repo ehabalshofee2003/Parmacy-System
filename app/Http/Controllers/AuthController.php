@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    //register for only admin
 public function register(Request $request)
 {
     try {
@@ -39,6 +40,7 @@ public function register(Request $request)
     }
 }
 
+//login for admin||pharmacist
 public function login(Request $request)
 {
     //هون عم نطلب من المستخدم يجيب اسم المستخدم وكلمة السر يلي الو
@@ -57,13 +59,13 @@ public function login(Request $request)
 
     return response()->json(['token' => $token, 'role' => $user->role , 'status' => 200] );
 }
-
+//logout for admin||pharmacist
 public function logout(Request $request)
 {
     $request->user()->tokens()->delete();
     return response()->json(['message' => 'Logged out' , 'status' => 200] , 200);
 }
-
+//not ready yet 
 public function profile(Request $request)
 {
     return response()->json($request->user());
