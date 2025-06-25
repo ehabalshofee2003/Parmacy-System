@@ -4,35 +4,62 @@ namespace App\Http\Controllers;
 
 use App\Models\category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Resources\CategoryResource;
 
 class CategoryController extends Controller
 {
-    /*
-    i want to add a function to search on the category by name
-    */
+
     //return all categories
-  public function index()
+public function index()
 {
-    return response()->json([
-        'status' => 200,
-        'categories' => Category::all()
-    ], 200);
+    try {
+        $categories = Category::all();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم جلب التصنيفات بنجاح.',
+            'data' => CategoryResource::collection($categories),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في جلب التصنيفات.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
 }
 //add a new category by admin (not ready yet)
-public function store(Request $request)
+public function store(StoreCategoryRequest $request)
 {
-    $request->validate([    'name' => 'required|string|unique:categories,name']);
-    $category = Category::create(['name' => $request->name]);
-    return response()->json([
-        'data' => $category,
-        'status' => 201,
-    ], 201);}
-    //show medicin||supply that related with category (not ready yet)
-public function medicines($id)
-{
-    $category = Category::with('medicines')->findOrFail($id);
-    return response()->json(['medicines ' => $category->medicines , 'status' => 200]);
+    try {
+        DB::beginTransaction();
+       
+        $category = Category::create([
+            'name' => $request->name,
+            'image_url' => $request->image_url, // ممكن يكون null أو رابط من الإنترنت
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم إضافة التصنيف بنجاح.',
+            'data' => $category,
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في إضافة التصنيف.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
 }
+
 
 public function show($id)
 {
@@ -42,16 +69,55 @@ public function show($id)
 //update name or image to category (not ready yet)
 public function update(Request $request, $id)
 {
-    $category = Category::findOrFail($id);
-    $request->validate(['name' => 'required|string|unique:categories,name,' . $id]);
-    $category->update(['name' => $request->name]);
-    return response()->json([$category,'status' => 200]);
+    try {
+        $category = Category::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'image_url' => 'nullable|url', // الصورة ستكون من الإنترنت
+        ]);
+
+        $category->update($validated);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تعديل التصنيف بنجاح.',
+            'data' => new CategoryResource($category),
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'خطأ في التحقق من البيانات.',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في تعديل التصنيف.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
 }
+
 //delete category
 public function destroy($id)
 {
-    Category::destroy($id);
-    return response()->json(['message' => 'Deleted' , 'status' => 204]);
+    try {
+        $category = Category::findOrFail($id);
+        $category->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم حذف التصنيف بنجاح.',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'فشل في حذف التصنيف.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
 }
+
 
 }

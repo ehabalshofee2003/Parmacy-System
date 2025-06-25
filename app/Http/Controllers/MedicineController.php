@@ -89,7 +89,7 @@ public function search(SearchDrugRequest $request)
 public function index()
 {
     try {
-        $medicines = Medicine::orderBy('name_en')->get();
+      $medicines = Medicine::orderBy('id')->get();
 
         return response()->json([
             'status' => true,

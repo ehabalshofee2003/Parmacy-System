@@ -20,6 +20,7 @@ class CartResource extends JsonResource
             'status' => $this->status,
             'items' => CartItemResource::collection($this->items),
             'total' => $this->items->sum('total_price'),
+            'bill_number' =>$this->bill_number,
             'created_at' => $this->created_at->toDateTimeString(),
         ];
     }

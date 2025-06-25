@@ -11,15 +11,15 @@ return new class extends Migration
      */
    public function up()
 {
-    Schema::table('supplies', function (Blueprint $table) {
-        $table->string('image_url')->nullable();
+    Schema::table('carts', function (Blueprint $table) {
+        $table->string('bill_number')->nullable()->after('status'); // أو عدّل حسب الترتيب المناسب لك
     });
 }
 
 public function down()
 {
-    Schema::table('supplies', function (Blueprint $table) {
-        $table->dropColumn('image_url');
+    Schema::table('carts', function (Blueprint $table) {
+        $table->dropColumn('bill_number');
     });
 }
 

@@ -13,7 +13,7 @@ class SupplyController extends Controller
     //عرض المستلزمات من \ون تصنيف
     public function index()
 {
-    $supplies = Supply::select('title', 'consumer_price', 'stock_quantity', 'image')->get();
+    $supplies = Supply::select('title', 'consumer_price', 'stock_quantity', 'image_url')->get();
 
     return response()->json([
         'data' => $supplies
@@ -74,39 +74,49 @@ public function search(SearchSupplyRequest $request)
 
 public function store(Request $request)
 {
-   $request->validate([
-    'title' => 'required|string|max:255',
-    'category_id' => 'required|exists:categories,id',
-    'pharmacy_price' => 'required|numeric',
-    'consumer_price' => 'required|numeric',
-    'discount' => 'nullable|numeric',
-    'stock_quantity' => 'required|integer',
-    'image' => 'nullable|url'  // ✅ فقط نتحقق أنه رابط صالح
-]);
-    // رفع الصورة إن وجدت
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'category_id' => 'required|exists:categories,id',
+        'pharmacy_price' => 'required|numeric',
+        'consumer_price' => 'required|numeric',
+        'discount' => 'nullable|numeric',
+        'stock_quantity' => 'required|integer',
+        'image_url' => 'nullable' // ممكن رابط أو ملف
+    ]);
+
+    \Log::info('image_url content:', ['value' => $request->image_url]);
+
     $imagePath = null;
-    if ($request->hasFile('image')) {
-        $imageName = Str::random(20) . '.' . $request->image->extension();
-        $request->image->move(public_path('images/supplies'), $imageName);
+
+    // إذا كانت صورة مرفوعة
+    if ($request->hasFile('image_url')) {
+        $imageName = Str::random(20) . '.' . $request->file('image_url')->extension();
+        $request->file('image_url')->move(public_path('images/supplies'), $imageName);
         $imagePath = 'images/supplies/' . $imageName;
     }
+    // إذا كان رابط URL
+    elseif ($request->filled('image_url') && filter_var($request->image_url, FILTER_VALIDATE_URL)) {
+        $imagePath = $request->image_url;
+    }
 
-    // إنشاء السجل
-   $supply = Supply::create([
-    'title' => $request->title,
-    'category_id' => $request->category_id,
-    'pharmacy_price' => $request->pharmacy_price,
-    'consumer_price' => $request->consumer_price,
-    'discount' => $request->discount,
-    'stock_quantity' => $request->stock_quantity,
-    'image' => $request->image,  // ✅ نحفظ الرابط كما هو
-]);
+    $supply = Supply::create([
+        'title' => $request->title,
+        'category_id' => $request->category_id,
+        'pharmacy_price' => $request->pharmacy_price,
+        'consumer_price' => $request->consumer_price,
+        'discount' => $request->discount,
+        'stock_quantity' => $request->stock_quantity,
+        'image_url' => $imagePath,
+    ]);
 
     return response()->json([
         'message' => 'تمت إضافة المستلزم الطبي بنجاح',
         'data' => $supply
     ], 201);
 }
+
+
+
 public function update(Request $request, $id)
 {
     $supply = Supply::findOrFail($id);
@@ -118,7 +128,7 @@ public function update(Request $request, $id)
         'consumer_price' => 'sometimes|numeric',
         'discount' => 'nullable|numeric',
         'stock_quantity' => 'sometimes|integer',
-        'image' => 'nullable|url'  // ✅ فقط رابط
+        'image_url' => 'nullable|url'  // ✅ فقط رابط
     ]);
 
     // تحديث الحقول فقط إذا تم إرسالها
@@ -129,7 +139,7 @@ public function update(Request $request, $id)
         'consumer_price',
         'discount',
         'stock_quantity',
-        'image'
+        'image_url'
     ]));
 
     return response()->json([
@@ -139,13 +149,28 @@ public function update(Request $request, $id)
 }
 public function destroy($id)
 {
-    $supply = Supply::findOrFail($id);
-    $supply->delete();
+    try {
+        $supply = Supply::findOrFail($id);
+        $supply->delete();
 
-    return response()->json([
-        'message' => '🗑️ تم حذف المستلزم الطبي بنجاح'
-    ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'تم حذف المستلزم الطبي بنجاح.',
+        ]);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'المستلزم الطبي غير موجود.',
+        ], 404);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء الحذف.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
+
 
 
 

@@ -46,4 +46,9 @@ public function invoiceItems() {
     return $this->hasMany(Bill_item::class);
 }
 
+   public function cartItems()
+    {
+        return $this->morphMany(Cart_items::class, 'item');
+    }
+
 }

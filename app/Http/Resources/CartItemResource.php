@@ -14,6 +14,7 @@ class CartItemResource extends JsonResource
      *
      * @return array<string, mixed>
      */
+    /*
    public function toArray(Request $request): array
 {
     $itemName = null;
@@ -34,5 +35,28 @@ class CartItemResource extends JsonResource
         'unit_price'    => $this->unit_price,
         'total_price'   => $this->total_price,
     ];
+}
+    */
+    public function toArray($request)
+{
+    return [
+        'item_type'    => $this->resolveItemType($this->item_type),
+        'item_id'      => $this->item_id,
+'item_name' => $this->item_type === 'medicine'
+    ? $this->medicine->name_ar
+    : ($this->supply->title ?? 'غير معروف'),
+        'quantity'     => $this->stock_quantity,
+        'unit_price'   => number_format($this->unit_price, 2),
+        'total_price'  => number_format($this->total_price, 2),
+    ];
+}
+
+private function resolveItemType($type)
+{
+    return match ($type) {
+        \App\Models\Medicine::class => 'medicine',
+        \App\Models\Supply::class   => 'supply',
+        default                     => 'unknown'
+    };
 }
 }

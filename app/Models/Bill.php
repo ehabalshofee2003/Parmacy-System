@@ -31,6 +31,15 @@ public function cart()
     return $this->hasOne(Cart::class);
 }
 
+protected static function boot()
+{
+    parent::boot();
 
+    static::creating(function ($bill) {
+        $lastId = Bill::max('id') ?? 0;
+        $nextId = $lastId + 1;
+        $bill->bill_number = str_pad($nextId, 4, '0', STR_PAD_LEFT);
+    });
+}
 
 }

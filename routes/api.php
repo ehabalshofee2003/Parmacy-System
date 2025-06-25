@@ -29,7 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/medicine', [MedicineController::class, 'index']); // كل الأدوية
             Route::get('/medicine/{id}', [MedicineController::class, 'show']); // دواء محدد
             Route::get('/medicine/category/{categoryId}', action: [MedicineController::class, 'getByCategory']); // حسب الصنف
-            Route::get('/drugs/search', [MedicineController::class, 'search']);
+            //CATEGORY
+            Route::get('/categories', [CategoryController::class, 'index']);
+            Route::get('/categories/search', [CategoryController::class, 'search']);
 
 Route::middleware('isAdmin')->group(function () {
             Route::get('/admin/users', [UserController::class, 'index']);
@@ -42,8 +44,9 @@ Route::middleware('isAdmin')->group(function () {
             Route::post('/medicines', [MedicineController::class, 'store']);
             Route::put('/medicines/{id}', [MedicineController::class, 'update']);   // تحديث
             Route::delete('/medicines/{id}', [MedicineController::class, 'destroy']); // حذف
-            Route::apiResource('categories', CategoryController::class);
-
+            Route::post('/categories', [CategoryController::class, 'store']);
+            Route::put('/categories/{id}', [CategoryController::class, 'update']);
+            Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
     });
 
 Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
@@ -52,8 +55,9 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
             Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
             Route::delete('/cart/{id}', [CartController::class, 'deleteCart']);//حذف السلة
-            Route::delete('/cart/all', [CartController::class, 'deleteAllCartsForCurrentPharmacist']);//حذف جميع السلل الموجودة
+            Route::delete('/carts/delete-all', [CartController::class, 'deleteAllCartsForCurrentPharmacist']);//حذف جميع السلل الموجودة
             Route::post('/cart/{id}/confirm', [CartController::class, 'confirmCart']);//تاكيد السلة الى فاتوروة
+            Route::post('/carts/confirm-all', [CartController::class, 'confirmAllPendingCarts']);
             Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
             Route::post('/scan-barcode', [MedicineController::class, 'scan']);
@@ -61,7 +65,6 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::get('/bills', [BillController::class, 'index']);//استعراض جميع الفواتير المؤكدة
             Route::post('/bills/send/{id}', [BillController::class, 'sendSingleBillToAdmin']);//ارسال فاتورة مؤكدة للادمن
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
-
     });
 });
 
