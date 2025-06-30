@@ -94,8 +94,6 @@ public function update(Request $request, $id)
         'status' => 200
     ], 200);
 }
-
-
 public function destroy($id)
 {
     $user = User::find($id);

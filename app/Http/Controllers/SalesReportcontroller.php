@@ -27,13 +27,15 @@ public function store(Request $request)
     ]);
 }
     // 2. استعراض جميع تقارير المبيعات (Read All)
-   public function index()
+public function index()
 {
     $reports = SalesReport::orderBy('created_at', 'desc')->get();
 
     return response()->json([
         'status' => true,
-        'message' => 'قائمة تقارير المبيعات',
+        'message' => $reports->isEmpty()
+            ? 'لا توجد تقارير مبيعات حالياً'
+            : 'قائمة تقارير المبيعات',
         'data' => $reports->map(fn($r) => [
             'id' => $r->id,
             'report_type' => $r->report_type,
@@ -46,6 +48,7 @@ public function store(Request $request)
         ])
     ]);
 }
+
     // 3. عرض تقرير مبيعات مفرد (Read One)
     public function show($id)
     {

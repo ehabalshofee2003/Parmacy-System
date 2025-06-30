@@ -24,18 +24,21 @@ use Barryvdh\DomPDF\Facade\Pdf;
 }
 
  // 2. استعراض كل التقارير (Read All)
-    public function index()
-    {
-        $reports = StockReport::where('admin_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+   public function index()
+{
+    $reports = StockReport::where('admin_id', auth()->id())
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'تم جلب تقارير المخزون بنجاح.',
-            'data' => $reports,
-        ]);
-    }
+    return response()->json([
+        'status' => 200,
+        'message' => $reports->isEmpty()
+            ? 'لا توجد تقارير مخزون حالياً.'
+            : 'تم جلب تقارير المخزون بنجاح.',
+        'data' => $reports,
+    ]);
+}
+
 
     // 3. عرض تقرير مفرد (Read One)
     public function show($id)
