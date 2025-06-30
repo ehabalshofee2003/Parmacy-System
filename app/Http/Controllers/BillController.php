@@ -15,15 +15,17 @@ class BillController extends Controller
 public function show($id)
 {
     try {
-        if (auth()->user()->role !== 'pharmacist') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        $user = auth()->user();
+
+        // إذا كان Admin، يبحث فقط حسب ID
+        $query = Bill::with('items')->where('id', $id);
+
+        // إذا كان صيدلي، يقيّد حسب الـ user_id
+        if ($user->role !== 'admin') {
+            $query->where('user_id', $user->id);
         }
 
-        // جلب الفاتورة مع العناصر المرتبطة بها (عبر العلاقة)
-        $bill = Bill::with('items')
-                    ->where('user_id', auth()->id())
-                    ->where('id', $id)
-                    ->first();
+        $bill = $query->first();
 
         if (!$bill) {
             return response()->json([
@@ -47,18 +49,24 @@ public function show($id)
     }
 }
 
+
 public function index()
 {
     try {
-        if (auth()->user()->role !== 'pharmacist') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $user = auth()->user();
 
-        // جلب كل الفواتير الخاصة بالصيدلي الحالي
-        $bills = Bill::with('items')
-                    ->where('user_id', auth()->id())
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+        // إذا كان المسؤول، يعرض كل الفواتير
+        if ($user->role === 'admin') {
+            $bills = Bill::with('items')
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+        } else {
+            // المستخدم العادي يرى فقط فواتيره
+            $bills = Bill::with('items')
+                        ->where('user_id', $user->id)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+        }
 
         return response()->json([
             'status' => true,
@@ -74,6 +82,7 @@ public function index()
         ], 500);
     }
 }
+
 public function sendSingleBillToAdmin($id)
 {
     try {

@@ -9,6 +9,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\SupplyController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\StockReportcontroller;
+use App\Http\Controllers\SalesReportcontroller;
 
 
 Route::post('/admin/register', [AuthController::class, 'register']);
@@ -20,7 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/profile', [AuthController::class, 'profile']);
 
             //SUPPLIES
-            Route::get('/supplies/search', [SupplyController::class, 'search']);
+            Route::get('/search-supply', [SupplyController::class, 'search']);
             Route::get('/supplies', [SupplyController::class, 'index']);          // عرض
             Route::get('/supplies/{id}', [SupplyController::class, 'show']);
             Route::get('/supplies/category/{categoryId}', [SupplyController::class, 'getByCategory']); // حسب الصنف
@@ -29,9 +31,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/medicine', [MedicineController::class, 'index']); // كل الأدوية
             Route::get('/medicine/{id}', [MedicineController::class, 'show']); // دواء محدد
             Route::get('/medicine/category/{categoryId}', action: [MedicineController::class, 'getByCategory']); // حسب الصنف
+            Route::get('/search-drug', [MedicineController::class, 'search']);
+
             //CATEGORY
             Route::get('/categories', [CategoryController::class, 'index']);
             Route::get('/categories/search', [CategoryController::class, 'search']);
+
+            //BILLS
+            Route::get('/bills/{id}', [BillController::class, 'show']);//استعراض تفاصيل فاتورة مؤكدة
+            Route::get('/bills', [BillController::class, 'index']);//استعراض جميع الفواتير المؤكدة
 
 Route::middleware('isAdmin')->group(function () {
             Route::get('/admin/users', [UserController::class, 'index']);
@@ -47,6 +55,8 @@ Route::middleware('isAdmin')->group(function () {
             Route::post('/categories', [CategoryController::class, 'store']);
             Route::put('/categories/{id}', [CategoryController::class, 'update']);
             Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+            Route::apiResource('sales-reports', SalesReportController::class);
+            Route::apiResource('stock-reports', StockReportController::class);
     });
 
 Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
@@ -61,8 +71,6 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
             Route::post('/scan-barcode', [MedicineController::class, 'scan']);
-            Route::get('/bills/{id}', [BillController::class, 'show']);//استعراض تفاصيل فاتورة مؤكدة
-            Route::get('/bills', [BillController::class, 'index']);//استعراض جميع الفواتير المؤكدة
             Route::post('/bills/send/{id}', [BillController::class, 'sendSingleBillToAdmin']);//ارسال فاتورة مؤكدة للادمن
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
     });

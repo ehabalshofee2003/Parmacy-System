@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\AdminRegisterRequest;
 use Illuminate\Validation\ValidationException;
+use App\Services\BillService;
+use App\Services\CartService;
 
 class AuthController extends Controller
 {
@@ -62,10 +64,21 @@ public function login(Request $request)
 //logout for admin||pharmacist
 public function logout(Request $request)
 {
-    $request->user()->tokens()->delete();
-    return response()->json(['message' => 'Logged out' , 'status' => 200] , 200);
+    $user = $request->user();
+
+    // تنفيذ العمليات المؤجلة
+    CartService::confirmAllPendingCarts($user);
+    BillService::sendAllPendingBills($user);
+
+    // حذف التوكن
+    $user->tokens()->delete();
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'تم تسجيل الخروج وإتمام جميع العمليات.',
+    ]);
 }
-//not ready yet 
+//not ready yet
 public function profile(Request $request)
 {
     return response()->json($request->user());

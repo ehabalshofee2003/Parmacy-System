@@ -10,6 +10,29 @@ use Illuminate\Support\Str;
 
 class SupplyController extends Controller
 {
+public function search(Request $request)
+{
+    $query = Supply::query()
+        ->when($request->query('title'), fn($q) => $q->where('title', 'like', '%' . $request->query('title') . '%'))
+        ->when($request->query('stock_quantity'), fn($q) => $q->where('stock_quantity', '>=', $request->query('stock_quantity')));
+
+    $results = $query->get();
+
+    if ($results->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'لا توجد نتائج مطابقة.',
+            'data' => []
+        ]);
+    }
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'نتائج البحث عن المستلزم:',
+        'data' => SupplyResource::collection($results)
+    ]);
+}
+
     //عرض المستلزمات من \ون تصنيف
     public function index()
 {
@@ -51,26 +74,6 @@ class SupplyController extends Controller
     ], 200);
 }
 //البحث عن مستلزم من خلال الاسم / الكمية
-public function search(SearchSupplyRequest $request)
-    {
-        $query = Supply::query();
-
-        if ($request->filled('title')) {
-            $query->where('title', 'like', '%' . $request->title . '%');
-        }
-
-        if ($request->filled('stock_quantity')) {
-            $query->where('stock_quantity', '>=', $request->stock_quantity);
-        }
-
-        $results = $query->get();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'نتائج البحث عن المستلزمات:',
-            'data' => SupplyResource::collection($results)
-        ]);
-}
 
 public function store(Request $request)
 {

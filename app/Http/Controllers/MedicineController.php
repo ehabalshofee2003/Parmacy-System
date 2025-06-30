@@ -12,37 +12,30 @@ use App\Http\Resources\DrugResource;
 class MedicineController extends Controller
 {
 
-// البحث عن دواء من خلال الاسم  / رقم الباركود /
-public function search(SearchDrugRequest $request)
-    {
-        $query = Medicine::query();
+//  البحث عن دواء من خلال الاسم  / رقم الباركود / تاريخ الصلاحية /الكمية
+public function search(Request $request)
+{
+    $query = Medicine::query()
+        ->when($request->query('barcode'), fn($q) => $q->where('barcode', $request->query('barcode')))
+        ->when($request->query('name_en'), fn($q) => $q->where('name_en', 'like', '%' . $request->query('name_en') . '%'))
+        ->when($request->query('name_ar'), fn($q) => $q->where('name_ar', 'like', '%' . $request->query('name_ar') . '%'))
+        ->when($request->query('expiry_date'), fn($q) => $q->where('expiry_date', $request->query('expiry_date')));
 
-        if ($request->filled('barcode')) {
-            $query->where('barcode', $request->barcode);
-        }
+    $results = $query->get();
 
-        if ($request->filled('name_en')) {
-            $query->where('name_en', 'like', '%' . $request->title . '%');
-        }
-         if ($request->filled('name_ar')) {
-            $query->where('name_ar', 'like', '%' . $request->title . '%');
-        }
-
-        if ($request->filled('stock_quantity')) {
-            $query->where('stock_quantity', '>=', $request->stock_quantity);
-        }
-
-        if ($request->filled('expiry_date')) {
-            $query->where('expiry_date', $request->expiry_date);
-        }
-
-        $results = $query->get();
-
+    if ($results->isEmpty()) {
         return response()->json([
-            'status' => true,
-            'message' => 'نتائج البحث عن الأدوية:',
-            'data' => DrugResource::collection($results)
+            'status' => false,
+            'message' => 'لا توجد نتائج مطابقة.',
+            'data' => []
         ]);
+    }
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'نتائج البحث عن الأدوية:',
+        'data' => DrugResource::collection($results)
+    ]);
 }
 
 

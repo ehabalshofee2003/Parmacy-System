@@ -51,7 +51,7 @@ public function store(Request $request)
 }
 public function update(Request $request, $id)
 {
-    $user = User::find($id); // بدل findOrFail
+    $user = User::find($id);
 
     if (!$user) {
         return response()->json([
@@ -68,7 +68,7 @@ public function update(Request $request, $id)
         ], 403);
     }
 
-    // تحقق من البيانات المدخلة
+    // التحقق من البيانات المدخلة
     $validated = $request->validate([
         'first_name' => 'sometimes|string',
         'last_name' => 'sometimes|string',
@@ -77,19 +77,8 @@ public function update(Request $request, $id)
         'password' => 'sometimes|string|min:6',
     ]);
 
-    // تحديث الحقول المرسلة فقط
-    if (isset($validated['username'])) {
-        $user->username = $validated['username'];
-    }
-      if (isset($validated['first_name'])) {
-        $user->username = $validated['first_name'];
-    }
-      if (isset($validated['last_name'])) {
-        $user->username = $validated['last_name'];
-    }
-      if (isset($validated['phone'])) {
-        $user->username = $validated['phone'];
-    }
+    // تحديث القيم المدخلة فقط
+    $user->fill(collect($validated)->except('password')->toArray());
 
     if (isset($validated['password'])) {
         $user->password = bcrypt($validated['password']);
@@ -99,10 +88,11 @@ public function update(Request $request, $id)
 
     return response()->json([
         'message' => 'تم تحديث بيانات الموظف بنجاح.',
-        'user' => $user->username,
+        'user' => $user->only(['first_name', 'last_name', 'username', 'phone']),
         'status' => 200
     ], 200);
 }
+
 
 public function destroy($id)
 {
