@@ -12,11 +12,13 @@ class UserController extends Controller
 {
 public function index()
 {
-    $usernames = User::where('role', 'pharmacist')->pluck('username');
+    $pharmacists = User::where('role', 'pharmacist')
+        ->select('id', 'username')
+        ->get();
 
     return response()->json([
         'status' => 200,
-        'employees' => $usernames
+        'employees' => $pharmacists
     ]);
 }
 

@@ -50,6 +50,7 @@ return [
         'font_height_ratio' => 1.1,
         'enable_html5_parser' => true,
     ],
+    
 'font_data' => [
     'dejavusans' => [
         'R'  => 'DejaVuSans.ttf',
