@@ -13,11 +13,12 @@ class CategoryResource extends JsonResource
      * @return array<string, mixed>
      */
 public function toArray($request)
-    {
-        return [
-            'id'         => $this->id,
-            'name'       => $this->name,
-            'image_url'  => $this->image_url ?? null,
-        ];
-    }
+{
+    return [
+        'id' => $this->id,
+        'name' => $this->name,
+        'image_url' => $this->image_url ? asset('storage/' . $this->image_url) : null,
+
+    ];
+}
 }

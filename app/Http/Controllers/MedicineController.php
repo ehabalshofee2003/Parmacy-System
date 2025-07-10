@@ -106,7 +106,7 @@ public function store(Request $request)
         'name_ar' => 'required|string|max:255',
         'barcode' => 'required|string|max:255|unique:medicines,barcode',
         'category_id' => 'exists:categories,id',
-        'image_url' => 'nullable|url', // ✅ تأكد من أنه رابط إنترنت صالح
+        'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'manufacturer' => 'nullable|string|max:255',
         'pharmacy_price' => 'required|numeric|min:0',
         'consumer_price' => 'required|numeric|min:0',
@@ -119,13 +119,34 @@ public function store(Request $request)
         'admin_id' => 'nullable|exists:users,id',
     ]);
 
-    $medicine = Medicine::create($validated);
+    try {
+        if ($request->hasFile('image_url')) {
+            $path = $request->file('image_url')->store('medicines', 'public');
+            if (!$path) {
+                throw new \Exception('فشل في رفع الصورة');
+            }
+            $validated['image_url'] = $path;
+        }
 
-    return response()->json([
-        'message' => '✅ تم إضافة الدواء بنجاح',
-        'data' => $medicine
-    ], 201);
+        $medicine = Medicine::create($validated);
+
+        return response()->json([
+            'message' => '✅ تم إضافة الدواء بنجاح',
+            'data' => [
+                ...$medicine->toArray(),
+                'image_url' => $medicine->image_url ? asset('storage/' . $medicine->image_url) : null,
+            ]
+        ], 201);
+    } catch (\Exception $e) {
+        \Log::error('Error uploading image: ' . $e->getMessage());
+        return response()->json([
+            'message' => 'حدث خطأ أثناء إضافة الدواء',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
 }
+
+
 
 public function update(Request $request, $id)
 {
@@ -136,7 +157,7 @@ public function update(Request $request, $id)
         'name_ar' => 'sometimes|string|max:255',
         'barcode' => 'sometimes|string|max:255|unique:medicines,barcode,' . $id,
         'category_id' => 'sometimes|exists:categories,id',
-        'image_url' => 'nullable|url',
+        'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // تعديل
         'manufacturer' => 'sometimes|string|max:255',
         'pharmacy_price' => 'sometimes|numeric|min:0',
         'consumer_price' => 'sometimes|numeric|min:0',
@@ -149,6 +170,11 @@ public function update(Request $request, $id)
         'admin_id' => 'nullable|exists:users,id',
     ]);
 
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('medicines', 'public');
+        $validated['image'] = $path;
+    }
+
     $medicine->update($validated);
 
     return response()->json([
@@ -156,6 +182,7 @@ public function update(Request $request, $id)
         'data' => $medicine
     ]);
 }
+
 public function destroy($id)
 {
     $medicine = Medicine::findOrFail($id);

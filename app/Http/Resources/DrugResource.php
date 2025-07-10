@@ -15,7 +15,7 @@ class DrugResource extends JsonResource
       public function toArray(Request $request): array
     {
         return [
-            'name_en'         => $this->title,
+            'name_en'         => $this->name_en,
             'stock_quantity'        => $this->stock_quantity,
             'consumer_price'  => $this->consumer_price,
             'barcode'         => $this->barcode,

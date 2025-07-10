@@ -19,11 +19,11 @@ class StoreCategoryRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
- public function rules()
-{
-    return [
-        'name' => 'required|string|max:255',
-        'image_url' => 'nullable|url', // نتأكد أنه رابط صالح
-    ];
-}
+  public function rules()
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
+    }
 }

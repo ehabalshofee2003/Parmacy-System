@@ -14,8 +14,7 @@ class MedicineSeeder extends Seeder
 
     public function run(): void
     {
-Category::factory(5)->create(); // أولاً توليد أصناف
-Medicine::factory(50)->create(); // توليد أدوية مرتبطة بها
+     Medicine::factory(10)->create(); // توليد أدوية مرتبطة بها
 
     }
 }

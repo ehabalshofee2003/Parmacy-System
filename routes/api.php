@@ -65,7 +65,14 @@ Route::middleware('isAdmin')->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
         // راوتات خاصة بالموظف الصيدلي
-            Route::post('/cart', [CartController::class, 'store']); // add items to cart
+            Route::post('cart/create', [CartController::class, 'createNewCart']);
+            Route::post('cart/add-item', [CartController::class, 'addItemToCart']);
+            Route::get('cart/current', [CartController::class, 'getCurrentCart']);
+            Route::post('cart/confirm', [CartController::class, 'confirmCart']);
+            Route::put('/cart/update-name', [CartController::class, 'updateCartName']);
+            Route::put('/cart/update-item', [CartController::class, 'updateCartItemQuantity']);
+            Route::delete('/cart/remove-item', [CartController::class, 'removeCartItem']);
+
             Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
             Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
             Route::delete('/cart/{id}', [CartController::class, 'deleteCart']);//حذف السلة

@@ -8,10 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class category extends Model
 {
     use HasFactory;
-       protected $fillable = [
-        'name',
-        'image_url',
-    ];
+   protected $fillable = ['name', 'image_url']; // وغيره حسب الحقول
+
   public function medicines()
     {
         return $this->hasMany(Medicine::class);

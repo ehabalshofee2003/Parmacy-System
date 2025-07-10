@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('bill_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('customer_name')->nullable();
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'completed', 'cancelled' , 'confirmed'])->default('pending');
             $table->timestamps();
         });
     }

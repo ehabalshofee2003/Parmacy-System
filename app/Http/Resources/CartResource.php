@@ -18,6 +18,7 @@ class CartResource extends JsonResource
             'cart_id' => $this->id,
             'customer_name' => $this->customer_name,
             'status' => $this->status,
+
             'items' => CartItemResource::collection($this->items),
             'total' => $this->items->sum('total_price'),
             'bill_number' =>$this->bill_number,

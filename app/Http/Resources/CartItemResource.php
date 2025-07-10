@@ -40,10 +40,9 @@ class CartItemResource extends JsonResource
     public function toArray($request)
 {
     return [
-        'item_type'    => $this->resolveItemType($this->item_type),
-        'item_id'      => $this->item_id,
+'item_type' => $this->item_type,        'item_id'      => $this->item_id,
 'item_name' => $this->item_type === 'medicine'
-    ? $this->medicine->name_ar
+    ? $this->medicine->name_en
     : ($this->supply->title ?? 'غير معروف'),
         'quantity'     => $this->stock_quantity,
         'unit_price'   => number_format($this->unit_price, 2),
@@ -51,12 +50,5 @@ class CartItemResource extends JsonResource
     ];
 }
 
-private function resolveItemType($type)
-{
-    return match ($type) {
-        \App\Models\Medicine::class => 'medicine',
-        \App\Models\Supply::class   => 'supply',
-        default                     => 'unknown'
-    };
-}
+ 
 }
