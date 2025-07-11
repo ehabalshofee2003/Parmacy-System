@@ -17,7 +17,7 @@ class MedicineResource extends JsonResource
         return [
             'id' => $this->id,
             'name_en'        => $this->name_en,
-        'image_url' => $this->image_url ? asset('storage/' . $this->image_url) : null,
+            'image_url' => $this->image_url, // ما تستخدم asset() هون
             'stock_quantity' => $this->stock_quantity,
             'consumer_price' => $this->consumer_price,
             'expiry_date'    => $this->expiry_date,

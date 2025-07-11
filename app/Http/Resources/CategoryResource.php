@@ -17,7 +17,8 @@ public function toArray($request)
     return [
         'id' => $this->id,
         'name' => $this->name,
-        'image_url' => $this->image_url ? asset('storage/' . $this->image_url) : null,
+
+        'image_url' => $this->image_url, // ما تستخدم asset() هون
 
     ];
 }

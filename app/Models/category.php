@@ -17,5 +17,6 @@ class category extends Model
  public function supplies()
     {
         return $this->hasMany(supply::class);
-    }
+    } 
+
 }

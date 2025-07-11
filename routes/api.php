@@ -42,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/bills', [BillController::class, 'index']);//استعراض جميع الفواتير المؤكدة
 
 Route::middleware('isAdmin')->group(function () {
+    Route::get('/test-image-url', [CategoryController::class, 'testImagePath']);
+
             Route::get('/admin/users', [UserController::class, 'index']);
             Route::post('/admin/users', [UserController::class, 'store']);
             Route::put('/admin/users/{id}', [UserController::class, 'update']);

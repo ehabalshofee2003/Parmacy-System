@@ -20,7 +20,7 @@ public function index()
         return response()->json([
             'status' => 200,
             'message' => 'تم جلب التصنيفات بنجاح.',
-            'data' => CategoryResource::collection($categories),
+            'data' => CategoryResource::collection($categories)
         ]);
     } catch (\Exception $e) {
         return response()->json([
@@ -30,6 +30,13 @@ public function index()
         ], 500);
     }
 }
+public function testImagePath()
+{
+    return response()->json([
+        'app_url' => config('app.url'),
+'image_url' => url('storage/categories/UzuBfLUSN25rByYkQMChqUPkSrqKYDXpx08B20iU.jpg'),
+    ]);
+}
 //add a new category by admin (not ready yet)
 public function store(StoreCategoryRequest $request)
 {
@@ -38,18 +45,12 @@ public function store(StoreCategoryRequest $request)
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // تحقق من الصورة
+            'image_url' => 'nullable|url', // بدل image نتحقق انه رابط URL صالح
         ]);
-
-        // معالجة رفع الصورة
-        if ($request->hasFile('image_url')) {
-            $path = $request->file('image_url')->store('categories', 'public');
-            $validated['image_url'] = $path; // تخزين المسار النسبي: categories/xxx.jpg
-        }
 
         $category = Category::create([
             'name' => $validated['name'],
-            'image_url' => $validated['image_url'] ?? null, // السماح بقيمة null إذا لم يتم رفع صورة
+            'image_url' => $validated['image_url'] ?? null, // ناخد الرابط مباشرة
         ]);
 
         DB::commit();
@@ -59,7 +60,8 @@ public function store(StoreCategoryRequest $request)
             'message' => 'تم إضافة التصنيف بنجاح.',
             'data' => [
                 ...$category->toArray(),
-                'image_url' => $category->image_url ? asset('storage/' . $category->image_url) : null, // إرجاع المسار الكامل
+                // هنا ما في داعي تستخدم asset() لأنه الرابط مباشر من الإنترنت
+                'image_url' => $category->image_url,
             ],
         ], 201);
 
@@ -82,6 +84,9 @@ public function show($id)
 }
 //update name or image to category (not ready yet)
 
+
+
+
 public function update(Request $request, $id)
 {
     try {
@@ -90,22 +95,17 @@ public function update(Request $request, $id)
         // التحقق من البيانات
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
-            'image_url' => 'nullable|file|mimes:jpeg,jpg,png,gif|max:2048',
+            'image_url' => 'nullable|url|max:1000', // صورة كرابط فقط
         ]);
-         // تحديث الاسم إذا وُجد
+
+        // تحديث الاسم إذا وُجد
         if ($request->filled('name')) {
             $category->name = $request->name;
         }
 
-        // تحديث الصورة إذا تم رفعها
-        if ($request->hasFile('image_url')) {
-            // حذف الصورة القديمة إن وُجدت وكانت محلية
-            if ($category->image_url && \Storage::disk('public')->exists($category->image_url)) {
-                \Storage::disk('public')->delete($category->image_url);
-            }
-
-            // حفظ الصورة الجديدة
-            $category->image_url = $request->file('image_url')->store('categories', 'public');
+        // تحديث رابط الصورة إذا وُجد
+        if ($request->filled('image_url')) {
+            $category->image_url = $request->image_url;
         }
 
         $category->save();
@@ -117,7 +117,7 @@ public function update(Request $request, $id)
             'data' => [
                 'id' => $category->id,
                 'name' => $category->name,
-                'image_url' => $category->image_url ? asset('storage/' . $category->image_url) : null,
+                'image_url' => $category->image_url,
             ],
         ]);
 
@@ -135,8 +135,6 @@ public function update(Request $request, $id)
         ], 500);
     }
 }
-
-
 
 
 //delete category

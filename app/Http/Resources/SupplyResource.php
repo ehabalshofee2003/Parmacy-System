@@ -19,8 +19,8 @@ class SupplyResource extends JsonResource
             'title'           => $this->title,
             'stock_quantity'  => $this->stock_quantity,
             'reorder_level'   => $this->reorder_level,
-            'image_url'      => $this->image_url,
-            'category'        => $this->category->name ?? null, // assuming علاقة category موجودة
+             'image_url' => $this->image_url ? 'http://localhost:8000/storage/' . asset('' . $this->image_url) : null,
+             'category'        => $this->category->name ?? null, // assuming علاقة category موجودة
          ];
     }
 }
