@@ -19,108 +19,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CartController extends Controller
 {
- /**
-     * إنشاء سلة جديدة مع عناصر (دواء أو مستلزم طبي)
-     */
 
-     /**
-     * إنشاء سلة جديدة مع عناصر
-     */
-    /*
-    public function store(CreateCartRequest $request)
-    {
-        DB::beginTransaction();
-
-        try {
-            // التحقق من أن المستخدم هو صيدلي
-            if (auth()->user()->role !== 'pharmacist') {
-                return response()->json(['message' => 'Unauthorized.'], 403);
-            }
-
-            // إنشاء السلة الجديدة
-            $cart = Cart::create([
-                'user_id' => auth()->id(),
-                'customer_name' => $request->customer_name,
-                'status' => 'pending',
-            ]);
-
-            // معالجة كل عنصر مدخل في السلة
-            foreach ($request->items as $item) {
-                $itemType = $item['item_type']; // نوع العنصر (medicine أو supply)
-                $itemId   = $item['item_id'];   // معرف العنصر
-                $quantity = $item['quantity'];  // الكمية المطلوبة
-
-                // تحديد الكلاس المناسب حسب نوع العنصر
-                $modelClass = $itemType === 'medicine' ? Medicine::class : Supply::class;
-                $item_type_for_db = $itemType; // تخزين الاسم فقط في قاعدة البيانات
-
-                // جلب العنصر من قاعدة البيانات
-                $product = $modelClass::findOrFail($itemId);
-                $productName = $itemType === 'medicine' ? $product->name_ar : $product->title;
-
-                // حساب الكمية المحجوزة مسبقاً في سلال قيد الانتظار
-                $reservedQty = Cart_items::whereHas('cart', fn ($q) => $q->where('status', 'pending'))
-                    ->where('item_type', $item_type_for_db)
-                    ->where('item_id', $itemId)
-                    ->sum('stock_quantity');
-
-                // حساب الكمية المتاحة فعليًا
-                $availableQty = $product->stock_quantity - $reservedQty;
-
-                // التحقق من توفر الكمية المطلوبة
-                if ($quantity > $availableQty) {
-                    return response()->json([
-                        'status' => 400,
-                        'message' => "الكمية المطلوبة ($quantity) غير متاحة حالياً لـ {$productName}. المتاح: $availableQty"
-                    ], 400);
-                }
-
-                $price = $product->consumer_price; // سعر الوحدة
-                $total = $price * $quantity;      // السعر الإجمالي
-
-                // التحقق إذا كان العنصر موجود مسبقًا في السلة لتحديثه
-                $existingItem = $cart->items()
-                    ->where('item_type', $item_type_for_db)
-                    ->where('item_id', $itemId)
-                    ->first();
-
-                if ($existingItem) {
-                    $existingItem->stock_quantity += $quantity;
-                    $existingItem->total_price += $total;
-                    $existingItem->save();
-                } else {
-                    // إضافة عنصر جديد للسلة
-                    $cart->items()->create([
-                        'item_type'      => $item_type_for_db,
-                        'item_id'        => $itemId,
-                        'stock_quantity' => $quantity,
-                        'unit_price'     => $price,
-                        'total_price'    => $total,
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'تم إنشاء السلة بنجاح.',
-                'data' => new CartResource($cart->load('items')),
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'status' => false,
-                'message' => 'فشل في إنشاء السلة.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-*/
 // 🟢 إنشاء سلة جديدة فارغة
-    public function createNewCart(Request $request)
+ public function createNewCart(Request $request)
     {
         $cart = Cart::create([
             'user_id' => auth()->id(),
@@ -133,7 +34,6 @@ class CartController extends Controller
             'cart_id' => $cart->id
         ]);
     }
-
     // 🟢 إضافة عنصر للسلة
     public function addItemToCart(Request $request)
     {
@@ -145,7 +45,7 @@ class CartController extends Controller
         ]);
 
         $cart = Cart::where('id', $request->cart_id)
-            ->where('status', 'pending')
+             ->whereIn('status', ['pending', 'completed'])
             ->firstOrFail();
 
         $modelClass = $request->item_type === 'medicine' ? Medicine::class : Supply::class;
@@ -192,7 +92,6 @@ class CartController extends Controller
             'message' => 'تمت إضافة العنصر إلى السلة.',
         ]);
     }
-
     // 🟢 عرض السلة الحالية
     public function getCurrentCart()
     {
@@ -211,7 +110,6 @@ class CartController extends Controller
             'data' => new CartResource($cart),
         ]);
     }
-
     // 🟢 تأكيد السلة الحالية
     public function confirmCart(Request $request)
     {
@@ -240,7 +138,7 @@ class CartController extends Controller
 
     $cart = Cart::where('id', $request->cart_id)
                 ->where('user_id', auth()->id())
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'completed'])
                 ->firstOrFail();
 
     $cart->customer_name = $request->customer_name;
@@ -264,7 +162,7 @@ public function updateCartItemQuantity(Request $request)
     // ✅ محاولة جلب السلة
     $cart = Cart::where('id', $request->cart_id)
                 ->where('user_id', auth()->id())
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'completed'])
                 ->first();
 
     if (!$cart) {
@@ -336,7 +234,7 @@ public function removeCartItem(Request $request)
     // ✅ جلب السلة بدون firstOrFail
     $cart = Cart::where('id', $request->cart_id)
                 ->where('user_id', auth()->id())
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'completed'])
                 ->first();
 
     if (!$cart) {
@@ -436,10 +334,10 @@ public function deleteCart($id)
 {
     $cart = Cart::with('items')->findOrFail($id);
 
-    if ($cart->status !== 'pending') {
+    if (!in_array($cart->status, ['pending', 'completed'])) {
         return response()->json([
             'status' => false,
-            'message' => 'لا يمكن حذف سلة مؤكدة أو ملغاة.'
+            'message' => 'لا يمكن حذف هذه السلة.'
         ], 403);
     }
 
@@ -450,12 +348,14 @@ public function deleteCart($id)
         'message' => 'تم حذف السلة بنجاح.'
     ]);
 }
+
 public function deleteAllCartsForCurrentPharmacist()
 {
     $user = auth()->user();
 
     $deleted = Cart::where('user_id', $user->id)
-                   ->where('status', 'pending')
+                   ->whereIn('status', ['pending', 'completed'])
+
                    ->delete();
 
     return response()->json([
@@ -611,12 +511,6 @@ public function confirmAllPendingCarts()
         ], 500);
     }
 }
-
-
-
-    /**
-     * استعراض جميع السلال للصيدلي الحالي
-     */
     public function index()
     {
         try {
@@ -661,7 +555,7 @@ public function show($id)
         if (!$cart) {
             return response()->json([
                 'status' => 404,
-                'message' => 'السلة غير موجودة أو لا تملك صلاحية الوصول إليها.'
+                'message' => 'السلة غير موجودة.'
             ], 404);
         }
 
