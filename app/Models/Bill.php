@@ -36,10 +36,11 @@ protected static function boot()
     parent::boot();
 
     static::creating(function ($bill) {
-        $lastId = Bill::max('id') ?? 0;
-        $nextId = $lastId + 1;
-        $bill->bill_number = str_pad($nextId, 4, '0', STR_PAD_LEFT);
+         $count = Bill::whereDate('created_at', today())->count() + 1;
+        $sequence = str_pad($count, 4, '0', STR_PAD_LEFT);
+        $bill->bill_number =  "{$sequence}";
     });
 }
+
 
 }

@@ -12,77 +12,62 @@ use App\Http\Resources\BillResource;
 class BillController extends Controller
 {
 
-public function show($id)
+
+public function getConfirmedBills()
 {
-    try {
-        $user = auth()->user();
+    $userId = auth()->id();
 
-        // إذا كان Admin، يبحث فقط حسب ID
-        $query = Bill::with('items')->where('id', $id);
+    $bills = Bill::where('user_id', $userId)
+                 ->where('status', 'pending') // أو الحالة التي تعني "مؤكدة" حسب تعريفك
+                 ->with('items') // إذا عندك علاقة باسم billItems
+                 ->get();
 
-        // إذا كان صيدلي، يقيّد حسب الـ user_id
-        if ($user->role !== 'admin') {
-            $query->where('user_id', $user->id);
-        }
+    return response()->json([
+        'status' => true,
+        'message' => 'Confirmed Bills have been successfully fetched.',
+        'data' => $bills,
+    ]);
+}
+public function getConfirmedBillDetails($billId)
+{
+    $userId = auth()->id();
 
-        $bill = $query->first();
+    $bill = Bill::with('items')
+                ->where('id', $billId)
+                ->where('user_id', $userId)
+                ->where('status', 'pending') // أو 'pending' حسب حالة التأكيد عندك
+                ->first();
 
-        if (!$bill) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'الفاتورة غير موجودة أو لا تملك صلاحية الوصول إليها.'
-            ], 404);
-        }
-
-        return response()->json([
-            'status' => 200,
-            'message' => 'تم جلب تفاصيل الفاتورة بنجاح.',
-            'data' => new BillResource($bill)
-        ]);
-
-    } catch (\Exception $e) {
+    if (!$bill) {
         return response()->json([
             'status' => false,
-            'message' => 'حدث خطأ أثناء جلب تفاصيل الفاتورة.',
-            'error' => $e->getMessage(),
-        ], 500);
+            'message' => 'الفاتورة غير موجودة أو غير مؤكدة.',
+        ], 404);
     }
+
+    $data = [
+        'bill_id' => $bill->id,
+        'bill_number' => $bill->bill_number,
+        'status' => $bill->status,
+        'total_amount' => number_format($bill->total_amount, 2),
+        'created_at' => $bill->created_at->format('Y-m-d H:i:s'),
+        'items' => $bill->items->map(function ($item) {
+            return [
+                'item_type' => $item->item_type,
+                'item_id' => $item->item_id,
+                'stock_quantity' => $item->stock_quantity,
+                'unit_price' => number_format($item->unit_price, 2),
+                'total_price' => number_format($item->total_price, 2),
+            ];
+        }),
+    ];
+
+    return response()->json([
+        'status' => true,
+        'message' => 'تم جلب تفاصيل الفاتورة المؤكدة بنجاح.',
+        'data' => $data,
+    ]);
 }
-
-
-public function index()
-{
-    try {
-        $user = auth()->user();
-
-        // إذا كان المسؤول، يعرض كل الفواتير
-        if ($user->role === 'admin') {
-            $bills = Bill::with('items')
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-        } else {
-            // المستخدم العادي يرى فقط فواتيره
-            $bills = Bill::with('items')
-                        ->where('user_id', $user->id)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-        }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'تم جلب الفواتير بنجاح.',
-            'data' => BillResource::collection($bills)
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => 'حدث خطأ أثناء جلب الفواتير.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
-}
-
 public function sendSingleBillToAdmin($id)
 {
     try {

@@ -50,5 +50,10 @@ public function invoiceItems() {
     {
         return $this->morphMany(Cart_items::class, 'item');
     }
+// داخل نموذج Medicine مثلاً
+public function getExpiryDateAttribute($value)
+{
+    return \Carbon\Carbon::parse($value)->format('Y-m-d');
+}
 
 }

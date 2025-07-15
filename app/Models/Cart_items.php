@@ -11,7 +11,7 @@ class Cart_items extends Model
 
        protected $fillable = [
         'cart_id', 'item_id', 'item_type', 'stock_quantity',
-        'unit_price', 'total_price'
+        'unit_price', 'total_price' 
     ];
   public function cart()
     {
@@ -27,6 +27,6 @@ public function supply()
 {
     return $this->belongsTo(Supply::class, 'item_id');
 }
-    
+
 
 }

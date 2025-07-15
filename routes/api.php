@@ -38,9 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/categories/search', [CategoryController::class, 'search']);
 
             //BILLS
-            Route::get('/bills/{id}', [BillController::class, 'show']);//استعراض تفاصيل فاتورة مؤكدة
-            Route::get('/bills', [BillController::class, 'index']);//استعراض جميع الفواتير المؤكدة
-
+            Route::get('/bills/{billId}', [BillController::class, 'getConfirmedBillDetails']);
+            Route::get('/bills', [BillController::class, 'getConfirmedBills']);
 Route::middleware('isAdmin')->group(function () {
     Route::get('/test-image-url', [CategoryController::class, 'testImagePath']);
 
@@ -79,8 +78,9 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
             Route::delete('/cart/{id}', [CartController::class, 'deleteCart']);//حذف السلة
             Route::delete('/carts/delete-all', [CartController::class, 'deleteAllCartsForCurrentPharmacist']);//حذف جميع السلل الموجودة
-            Route::post('/cart/{id}/confirm', [CartController::class, 'confirmCart']);//تاكيد السلة الى فاتوروة
-            Route::post('/carts/confirm-all', [CartController::class, 'confirmAllPendingCarts']);
+            Route::post('/carts/convert-to-bill', [CartController::class, 'convertCartToBill']);
+            Route::post('/carts/confirm-all', [CartController::class, 'confirmAllCompletedCarts']);
+
             Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
             Route::post('/scan-barcode', [MedicineController::class, 'scan']);

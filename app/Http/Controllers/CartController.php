@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart_items;
 use App\Models\Medicine;
 use App\Models\Supply;
-
+use App\Models\Bill_item;
 use App\Models\Bill;
 use App\Http\Resources\CartResource;
 use App\Http\Resources\CartItemResource;
@@ -130,7 +130,7 @@ class CartController extends Controller
     }
   //  تعديل اسم الزبون في السلة
   public function updateCartName(Request $request)
-{
+  {
     $request->validate([
         'cart_id' => 'required|exists:carts,id',
         'customer_name' => 'nullable|string|max:255'
@@ -148,7 +148,7 @@ class CartController extends Controller
         'status' => true,
         'message' => 'تم تحديث اسم الزبون بنجاح.'
     ]);
-}
+    }
 //تعديل كمية عنصر في السلة
 public function updateCartItemQuantity(Request $request)
 {
@@ -220,7 +220,7 @@ public function updateCartItemQuantity(Request $request)
         'status' => true,
         'message' => 'تم تعديل الكمية بنجاح.'
     ]);
-}
+   }
 
 //حذف عنصر من السلة
 public function removeCartItem(Request $request)
@@ -264,71 +264,9 @@ public function removeCartItem(Request $request)
         'status' => true,
         'message' => 'تم حذف العنصر من السلة.'
     ]);
-}
+   }
 
 
- /**
-     * حذف عنصر من السلة
-     */
-    public function deleteCartItem($id)
-    {
-        try {
-            // جلب العنصر من جدول عناصر السلة
-            $cartItem = Cart_items::findOrFail($id);
-
-            // منع الحذف في حال كانت السلة مؤكدة أو ملغاة
-            if ($cartItem->cart->status !== 'pending') {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'لا يمكن حذف عنصر من سلة مؤكدة أو ملغاة.'
-                ], 403);
-            }
-
-            // حذف العنصر من السلة
-            $cartItem->delete();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'تم حذف العنصر من السلة بنجاح.'
-            ]);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'العنصر غير موجود في السلة.'
-            ], 404);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'حدث خطأ أثناء محاولة حذف العنصر.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-public function updateCartItem(UpdateCartItemRequest $request, $id)
-{
-    $cartItem = Cart_items::findOrFail($id);
-
-    if ($cartItem->cart->status !== 'pending') {
-        return response()->json([
-            'status' => false,
-            'message' => 'لا يمكن تعديل عنصر ضمن سلة مؤكدة أو ملغاة.'
-        ], 403);
-    }
-
-    $cartItem->update([
-        'stock_quantity' => $request->stock_quantity,
-        'total_price' => $cartItem->unit_price * $request->stock_quantity,
-    ]);
-
-    return response()->json([
-        'status' => true,
-        'message' => 'تم تعديل الكمية بنجاح.',
-        'data' => new CartItemResource($cartItem)
-    ]);
-}
 
 public function deleteCart($id)
 {
@@ -363,154 +301,172 @@ public function deleteAllCartsForCurrentPharmacist()
         'message' => "تم حذف {$deleted} سلة (معلقة) بنجاح."
     ]);
 }
- /**
-     * تأكيد السلة وتحويلها إلى فاتورة
-     */
-    public function confirmCart2($id)
-    {
-        DB::beginTransaction();
+// تأكيد السلة وتحويلها إلى فاتورة
+public function convertCartToBill(Request $request)
+{
+    $request->validate([
+        'cart_id' => 'required|exists:carts,id',
+    ]);
 
-        try {
-            // جلب السلة مع العناصر
-            $cart = Cart::with('items')->findOrFail($id);
+    // جلب السلة المكتملة فقط للمستخدم الحالي
+    $cart = Cart::with('items')
+        ->where('id', $request->cart_id)
+        ->where('user_id', auth()->id())
+        ->where('status', 'completed')
+        ->first();
 
-            // التحقق من أن السلة ما زالت قيد الانتظار
-            if ($cart->status !== 'pending') {
-                return response()->json([
-                    'status' => 403,
-                    'message' => 'السلة مؤكدة أو ملغاة بالفعل.'
-                ], 403);
-            }
-
-            // منع تأكيد سلة فارغة
-            if ($cart->items->isEmpty()) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'لا يمكن تأكيد سلة فارغة.'
-                ], 400);
-            }
-
-            // حساب إجمالي السعر
-            $totalAmount = $cart->items->sum('total_price');
-
-            // إنشاء الفاتورة بوضعية "معلقة"
-            $bill = Bill::create([
-                'user_id' => $cart->user_id,
-                'customer_name' => $cart->customer_name,
-                'total_amount' => $totalAmount,
-                'status' => 'pending',
-            ]);
-
-            // تحديث حالة السلة وربطها بالفاتورة
-            $cart->update([
-                'bill_id' => $bill->id,
-                'status' => 'completed',
-            ]);
-
-            // تحديث المخزون
-            foreach ($cart->items as $item) {
-                $model = null;
-
-                if ($item->item_type === 'medicine') {
-                    $model = Medicine::find($item->item_id);
-                } elseif ($item->item_type === 'supply') {
-                    $model = Supply::find($item->item_id);
-                }
-
-                if ($model) {
-                    $model->decrement('stock_quantity', $item->stock_quantity);
-                }
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'تم تأكيد السلة وتحويلها إلى فاتورة بنجاح.',
-                'data' => new BillResource($bill),
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'status' => 500,
-                'message' => 'فشل في تأكيد السلة.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    if (!$cart) {
+        return response()->json([
+            'status' => false,
+            'message' => 'The cart cannot be confirmed. It may be pre-confirmed or incomplete',
+        ], 400);
     }
 
-public function confirmAllPendingCarts()
+    $total = 0;
+    $billItems = [];
+
+   foreach ($cart->items as $cartItem) {
+    if ($cartItem->item_type === 'medicine') {
+        $product = Medicine::find($cartItem->item_id);
+    } elseif ($cartItem->item_type === 'supply') {
+        $product = Supply::find($cartItem->item_id);
+    } else {
+        continue;
+    }
+
+    if (!$product || is_null($cartItem->stock_quantity)) {
+        continue;
+    }
+
+    $unitPrice = $product->consumer_price ?? 0;
+    $itemTotal = $unitPrice * $cartItem->stock_quantity;
+    $total += $itemTotal;
+
+    // خصم الكمية من المخزون
+    $product->stock_quantity -= $cartItem->stock_quantity;
+    if ($product->stock_quantity < 0) {
+        $product->stock_quantity = 0;
+    }
+    $product->save();
+
+    $billItems[] = [
+        'item_type'      => $cartItem->item_type,
+        'item_id'        => $cartItem->item_id,
+        'stock_quantity' => $cartItem->stock_quantity,
+        'unit_price'     => $unitPrice,
+        'total_price'    => $itemTotal,
+    ];
+}
+
+
+    // إنشاء الفاتورة
+    $bill = Bill::create([
+        'user_id'      => auth()->id(),
+        'total_amount' => $total,
+        'status'       => 'pending',
+    ]);
+
+    // حفظ عناصر الفاتورة مع bill_id
+    foreach ($billItems as $item) {
+        Bill_item::create(array_merge($item, ['bill_id' => $bill->id]));
+    }
+
+    // تأكيد السلة
+    $cart->status = 'confirmed';
+    $cart->save();
+
+    return response()->json([
+        'status'          => true,
+        'message'         => 'The Bill was created and the Cart was successfully confirmed.',
+        'bill_id'         => $bill->id,
+        'bill_number'     => $bill->bill_number,
+        'cart_bill_number'=> $cart->bill_number,
+    ]);
+}
+
+
+
+public function confirmAllCompletedCarts()
 {
-    DB::beginTransaction();
+    $userId = auth()->id();
 
-    try {
-        // جلب جميع السلال المعلقة
-        $carts = Cart::with('items')->where('status', 'pending')->get();
+    // جلب كل السلات المكتملة للمستخدم
+    $carts = Cart::with('items')
+        ->where('user_id', $userId)
+        ->where('status', 'completed')
+        ->get();
 
-        if ($carts->isEmpty()) {
-            return response()->json([
-                'status' => 400,
-                'message' => 'لا توجد سلال معلقة للتأكيد.'
-            ], 400);
-        }
+    if ($carts->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'There are no completed Carts to convert.',
+        ], 404);
+    }
 
-        foreach ($carts as $cart) {
-            // منع تأكيد سلة فارغة
-            if ($cart->items->isEmpty()) {
-                // يمكن تتجاهل السلة الفارغة أو تحطها في لوج حسب رغبتك
+    $convertedBills = [];
+
+    foreach ($carts as $cart) {
+        $total = 0;
+        $billItems = [];
+
+        foreach ($cart->items as $cartItem) {
+            if ($cartItem->item_type === 'medicine') {
+                $product = Medicine::find($cartItem->item_id);
+            } elseif ($cartItem->item_type === 'supply') {
+                $product = Supply::find($cartItem->item_id);
+            } else {
                 continue;
             }
 
-            // حساب إجمالي السعر
-            $totalAmount = $cart->items->sum('total_price');
-
-            // إنشاء الفاتورة بوضعية "pending" (معلقة)
-            $bill = Bill::create([
-                'user_id' => $cart->user_id,
-                'customer_name' => $cart->customer_name,
-                'total_amount' => $totalAmount,
-                'status' => 'pending',
-            ]);
-
-            // تحديث حالة السلة وربطها بالفاتورة
-            $cart->update([
-                'bill_id' => $bill->id,
-                'status' => 'completed',
-            ]);
-
-            // تحديث المخزون لكل عنصر في السلة
-            foreach ($cart->items as $item) {
-                $model = null;
-
-                if ($item->item_type === 'medicine') {
-                    $model = Medicine::find($item->item_id);
-                } elseif ($item->item_type === 'supply') {
-                    $model = Supply::find($item->item_id);
-                }
-
-                if ($model) {
-                    $model->decrement('stock_quantity', $item->stock_quantity);
-                }
+            if (!$product || is_null($cartItem->stock_quantity)) {
+                continue;
             }
+
+            $unitPrice = $product->price ?? 0;
+            $itemTotal = $unitPrice * $cartItem->stock_quantity;
+            $total += $itemTotal;
+
+            $billItems[] = [
+                'item_type' => $cartItem->item_type,
+                'item_id' => $cartItem->item_id,
+                'stock_quantity' => $cartItem->stock_quantity,
+                'unit_price' => $unitPrice,
+                'total_price' => $itemTotal,
+            ];
         }
 
-        DB::commit();
-
-        return response()->json([
-            'status' => 200,
-            'message' => 'تم تأكيد جميع السلال المعلقة وتحويلها إلى فواتير بنجاح.'
+        // إنشاء الفاتورة
+        $bill = Bill::create([
+            'user_id' => $userId,
+            'total_amount' => $total,
+            'status' => 'pending',
         ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
 
-        return response()->json([
-            'status' => 500,
-            'message' => 'فشل في تأكيد السلال.',
-            'error' => $e->getMessage()
-        ], 500);
+        // حفظ تفاصيل الفاتورة
+        foreach ($billItems as $item) {
+            $item['bill_id'] = $bill->id;
+            Bill_item::create($item);
+        }
+
+        // تحديث حالة السلة إلى confirmed
+        $cart->status = 'confirmed';
+        $cart->save();
+
+        $convertedBills[] = [
+            'cart_id' => $cart->id,
+            'cart_bill_number' => $cart->bill_number,
+            'bill_id' => $bill->id,
+            'bill_number' => $bill->bill_number,
+        ];
     }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'All completed Carts have been confirmed and converted to Bills.',
+        'converted_bills' => $convertedBills,
+    ]);
 }
+
     public function index()
     {
         try {
