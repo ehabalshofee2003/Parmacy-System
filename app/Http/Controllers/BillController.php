@@ -12,7 +12,58 @@ use App\Http\Resources\BillResource;
 class BillController extends Controller
 {
 
+public function sendToAdmin($id)
+{
+    $bill = Bill::findOrFail($id);
 
+    // تحقق أن الفاتورة لم تُرسل مسبقًا
+    if ($bill->status === 'sent') {
+        return response()->json([
+            'status' => false,
+            'message' => 'تم إرسال الفاتورة مسبقاً.'
+        ], 400);
+    }
+
+    $bill->status = 'sent';
+     $bill->save();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'تم إرسال الفاتورة للإدارة بنجاح.',
+        'data' => $bill
+    ]);
+}
+public function sendConfirmedBillsToAdmin()
+{
+    // الحصول على الفواتير المؤكدة والتي لم تُرسل بعد
+    $bills = Bill::where('status', 'confirmed')
+                ->whereNull('sent_at')
+                ->get();
+
+    if ($bills->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'لا توجد فواتير مؤكدة لإرسالها.',
+        ]);
+    }
+
+    foreach ($bills as $bill) {
+        // هنا ممكن تضيف منطق الإرسال (بريد - إشعار - إلخ)
+        // مثلاً: إرسال إشعار للإدمن، أو حفظ سجل للإرسال
+
+        // تحديث الحالة ووقت الإرسال
+        $bill->update([
+            'status' => 'sent',
+            'sent_at' => Carbon::now(),
+        ]);
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'تم إرسال جميع الفواتير المؤكدة إلى الأدمن.',
+        'count' => $bills->count(),
+    ]);
+}
 public function getConfirmedBills()
 {
     $userId = auth()->id();

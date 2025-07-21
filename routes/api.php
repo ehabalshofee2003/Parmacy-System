@@ -84,7 +84,7 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
             Route::post('/scan-barcode', [MedicineController::class, 'scan']);
-            Route::post('/bills/send/{id}', [BillController::class, 'sendSingleBillToAdmin']);//ارسال فاتورة مؤكدة للادمن
+            Route::post('/bills/{id}/send', [BillController::class, 'sendToAdmin']);
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
     });
 });

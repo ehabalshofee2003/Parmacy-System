@@ -136,9 +136,6 @@ public function store(Request $request)
     }
 }
 
-
-
-
 public function update(Request $request, $id)
 {
     $medicine = Medicine::findOrFail($id);
@@ -148,7 +145,7 @@ public function update(Request $request, $id)
         'name_ar' => 'sometimes|string|max:255',
         'barcode' => 'sometimes|string|max:255|unique:medicines,barcode,' . $id,
         'category_id' => 'sometimes|exists:categories,id',
-        'image_url' => 'nullable|url|max:1000', // رابط صورة فقط
+        'image_url' => 'nullable|url|max:1000',
         'manufacturer' => 'sometimes|string|max:255',
         'pharmacy_price' => 'sometimes|numeric|min:0',
         'consumer_price' => 'sometimes|numeric|min:0',
@@ -161,7 +158,13 @@ public function update(Request $request, $id)
         'admin_id' => 'nullable|exists:users,id',
     ]);
 
-    // لا داعي لرفع ملفات بعد الآن
+    if (empty($validated)) {
+        return response()->json([
+            'message' => '⚠️ لم يتم إرسال أي حقل للتحديث',
+            'data' => []
+        ]);
+    }
+
     $medicine->update($validated);
 
     return response()->json([
@@ -169,6 +172,7 @@ public function update(Request $request, $id)
         'data' => $medicine
     ]);
 }
+
 
 
 public function destroy($id)

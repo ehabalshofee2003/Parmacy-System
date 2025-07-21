@@ -17,6 +17,8 @@ return new class extends Migration
     $table->foreignId('user_id')->constrained()->onDelete('cascade');
     $table->decimal('total_amount', 10, 2);
     $table->enum('status', ['pending', 'sent'])->default('pending' );
+    $table->timestamp('sent_at')->nullable(); // وقت الإرسال للإدارة
+    $table->timestamps(); // يُفضل تركها لأنها تضيف created_at و updated_at
      });
     }
 
