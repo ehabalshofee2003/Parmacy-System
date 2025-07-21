@@ -173,8 +173,6 @@ public function update(Request $request, $id)
     ]);
 }
 
-
-
 public function destroy($id)
 {
     $medicine = Medicine::findOrFail($id);

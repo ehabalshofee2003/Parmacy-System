@@ -179,6 +179,55 @@ public function sendAllBillsToAdmin()
         ], 500);
     }
 }
+public function getSentBills()
+{
+$sentBills = Bill::where('status', 'sent')->get();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'تم جلب الفواتير المرسلة إلى الأدمن بنجاح.',
+        'data' => $sentBills,
+    ]);
+}
+
+public function showSentBillDetails($id)
+{
+    // التحقق من أن الفاتورة موجودة ومُرسلة
+    $bill = Bill::with(['items.medicine']) // جلب العناصر مع الدواء المرتبط
+                ->where('id', $id)
+                ->where('status', 'sent') // تأكد أنها مرسلة
+                ->first();
+
+    if (!$bill) {
+        return response()->json([
+            'status' => false,
+            'message' => 'لم يتم العثور على الفاتورة المرسلة.',
+            'data' => null,
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'تم جلب تفاصيل الفاتورة المرسلة بنجاح.',
+        'data' => [
+            'bill_id' => $bill->id,
+            'bill_number' => $bill->bill_number,
+            'date' => $bill->created_at->toDateString(),
+            'items' => $bill->items->map(function ($item) {
+                return [
+                    'medicine_name' => $item->medicine->name ?? 'غير معروف',
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'total_price' => $item->quantity * $item->unit_price,
+                ];
+            }),
+            'total' => $bill->items->sum(function ($item) {
+                return $item->quantity * $item->unit_price;
+            }),
+        ]
+    ]);
+}
+
 
 
 

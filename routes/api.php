@@ -62,6 +62,9 @@ Route::middleware('isAdmin')->group(function () {
             ->name('reports.sales.download');
             Route::get('reports/stock/{id}/pdf', [StockReportController::class, 'downloadPDF']);
 
+            Route::get('/admin/bills', [BillController::class, 'getSentBills']);
+            Route::get('/admin/bills/sent/{id}', [BillController::class, 'showSentBillDetails']);
+
     });
 
 Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
@@ -84,6 +87,7 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
             Route::post('/scan-barcode', [MedicineController::class, 'scan']);
+
             Route::post('/bills/{id}/send', [BillController::class, 'sendToAdmin']);
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
     });
