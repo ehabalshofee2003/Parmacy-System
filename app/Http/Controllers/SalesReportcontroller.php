@@ -15,7 +15,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class SalesReportcontroller extends Controller
 {
  // 1. إنشاء تقرير مبيعات جديد تلقائيًا (Create)
-
 public function store(Request $request)
 {
     $report = app(SalesReportService::class)->generate($request->input('report_type', 'daily'));
@@ -50,7 +49,7 @@ public function index()
 }
 
     // 3. عرض تقرير مبيعات مفرد (Read One)
-    public function show($id)
+public function show($id)
     {
         $report = SalesReport::where('admin_id', auth()->id())->find($id);
 
@@ -66,10 +65,10 @@ public function index()
             'message' => 'تم جلب التقرير بنجاح.',
             'data' => $report,
         ]);
-    }
+}
 
     // 4. تحديث ملاحظات تقرير المبيعات (Update)
-    public function update(Request $request, $id)
+public function update(Request $request, $id)
     {
         $report = SalesReport::where('admin_id', auth()->id())->find($id);
 
@@ -92,10 +91,10 @@ public function index()
             'message' => 'تم تحديث التقرير بنجاح.',
             'data' => $report,
         ]);
-    }
+}
 
     // 5. حذف تقرير مبيعات (Delete)
-    public function destroy($id)
+public function destroy($id)
     {
         $report = SalesReport::where('admin_id', auth()->id())->find($id);
 
@@ -112,11 +111,16 @@ public function index()
             'status' => 200,
             'message' => 'تم حذف التقرير بنجاح.',
         ]);
-    }
+}
 public function downloadPDF($id)
 {
-     $report = SalesReport::findOrFail($id);
+    $report = SalesReport::findOrFail($id);
     $pdf = Pdf::loadView('reports.sales_report_pdf', compact('report'));
     return $pdf->download("sales_report_{$report->id}.pdf");
 }
 }
+/*
+البحث عن موضوع تصدير التقاير كملفات pdf
+لازم يتم تخزين التقارير كملفات بي دي اف في ملفات مشروع
+ويمكن استعراض التقرير في لمتصفحات 
+*/
