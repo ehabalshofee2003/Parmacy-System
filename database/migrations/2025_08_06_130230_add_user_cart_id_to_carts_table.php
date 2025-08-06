@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::table('bills', function (Blueprint $table) {
-    $table->dateTime('sent_at')->nullable();
-});
+       Schema::table('carts', function (Blueprint $table) {
+          $table->unsignedInteger('user_cart_id')->nullable(); // تسلسل خاص بالمستخدم
+        });
+
     }
 
     /**
@@ -21,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('bills', function (Blueprint $table) {
+        Schema::table('carts', function (Blueprint $table) {
             //
         });
     }

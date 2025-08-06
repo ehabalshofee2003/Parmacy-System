@@ -74,7 +74,8 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::get('cart/current', [CartController::class, 'getCurrentCart']);
             Route::post('cart/confirm', [CartController::class, 'confirmCart']);
             Route::put('/cart/update-name', [CartController::class, 'updateCartName']);
-            Route::put('/cart/update-item', [CartController::class, 'updateCartItemQuantity']);
+            Route::post('/cart/increase', [CartController::class, 'increaseQuantity']);
+            Route::post('/cart/decrease', [CartController::class, 'decreaseQuantity']);
             Route::delete('/cart/remove-item', [CartController::class, 'removeCartItem']);
 
             Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة

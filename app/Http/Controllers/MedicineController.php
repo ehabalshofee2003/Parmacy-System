@@ -26,14 +26,14 @@ public function search(Request $request)
     if ($results->isEmpty()) {
         return response()->json([
             'status' => false,
-            'message' => 'لا توجد نتائج مطابقة.',
+            'message' => 'No matching results found.',
             'data' => []
         ]);
     }
 
     return response()->json([
         'status' => 200,
-        'message' => 'نتائج البحث عن الأدوية:',
+        'message' => 'Search results for medications:',
         'data' => DrugResource::collection($results)
     ]);
 }
@@ -47,13 +47,13 @@ public function search(Request $request)
 
         return response()->json([
             'status' => true,
-            'message' => 'تفاصيل الدواء.',
+            'message' => 'Details of the medicine.',
             'data' => new MedicineResource($medicine),
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => false,
-            'message' => 'فشل في جلب تفاصيل الدواء.',
+            'message' => 'Failure to provide medication details.',
             'error' => $e->getMessage(),
         ], 500);
     }
@@ -67,13 +67,13 @@ public function search(Request $request)
 
         return response()->json([
             'status' => true,
-            'message' => 'تم جلب الأدوية حسب الصنف.',
+            'message' => 'The medicines were brought in by category.',
             'data' => MedicineResource::collection($medicines),
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => false,
-            'message' => 'فشل في جلب الأدوية حسب الصنف.',
+            'message' => 'Failure to procure medicines by category.',
             'error' => $e->getMessage(),
         ], 500);
     }
@@ -124,7 +124,7 @@ public function store(Request $request)
         $medicine = Medicine::create($validated);
 
         return response()->json([
-            'message' => '✅ تم إضافة الدواء بنجاح',
+            'message' => ' The medication has been successfully added.',
             'data' => $medicine,
         ], 201);
     } catch (\Exception $e) {
@@ -160,7 +160,7 @@ public function update(Request $request, $id)
 
     if (empty($validated)) {
         return response()->json([
-            'message' => '⚠️ لم يتم إرسال أي حقل للتحديث',
+            'message' => 'No fields were sent for updating.',
             'data' => []
         ]);
     }
@@ -168,7 +168,7 @@ public function update(Request $request, $id)
     $medicine->update($validated);
 
     return response()->json([
-        'message' => '✅ تم تحديث بيانات الدواء بنجاح',
+        'message' => 'Medication data successfully updated.',
         'data' => $medicine
     ]);
 }
@@ -179,7 +179,7 @@ public function destroy($id)
     $medicine->delete();
 
     return response()->json([
-        'message' => '🗑️ تم حذف الدواء بنجاح'
+        'message' => 'The medication has been successfully deleted.'
     ]);
 }
 
@@ -196,7 +196,7 @@ public function destroy($id)
 
         if (!$medicine) {
             return response()->json([
-                'message' => 'الدواء غير موجود',
+                'message' => 'The medicine is not available.',
             ], 404);
         }
 

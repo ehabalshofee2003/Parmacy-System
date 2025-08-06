@@ -45,10 +45,11 @@ class CartItemResource extends JsonResource
     ? $this->medicine->name_en
     : ($this->supply->title ?? 'غير معروف'),
         'quantity'     => $this->stock_quantity,
+        'image_url' => $this->medicine->image_url,
         'unit_price'   => number_format($this->unit_price, 2),
         'total_price'  => number_format($this->total_price, 2),
     ];
 }
 
- 
+
 }

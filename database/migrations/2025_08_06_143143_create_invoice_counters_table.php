@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
- Schema::create('bills', function (Blueprint $table) {
+       Schema::create('invoice_counters', function (Blueprint $table) {
     $table->id();
-    $table->string('bill_number')->unique();
     $table->foreignId('user_id')->constrained()->onDelete('cascade');
-    $table->decimal('total_amount', 10, 2);
-    $table->enum('status', ['pending', 'sent'])->default('pending' );
-      });
+    $table->unsignedBigInteger('last_number')->default(0);
+    $table->timestamps();
+});
     }
 
     /**
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bills');
+        Schema::dropIfExists('invoice_counters');
     }
 };

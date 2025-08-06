@@ -20,7 +20,7 @@ public function sendToAdmin($id)
     if ($bill->status === 'sent') {
         return response()->json([
             'status' => false,
-            'message' => 'تم إرسال الفاتورة مسبقاً.'
+            'message' => 'The bill has already been sent.'
         ], 400);
     }
 
@@ -29,7 +29,7 @@ public function sendToAdmin($id)
 
     return response()->json([
         'status' => true,
-        'message' => 'تم إرسال الفاتورة للإدارة بنجاح.',
+        'message' => 'The bill has been successfully sent to management.',
         'data' => $bill
     ]);
 }
@@ -43,7 +43,7 @@ public function sendConfirmedBillsToAdmin()
     if ($bills->isEmpty()) {
         return response()->json([
             'status' => false,
-            'message' => 'لا توجد فواتير مؤكدة لإرسالها.',
+            'message' => 'There are no confirmed bill to send.',
         ]);
     }
 
@@ -60,7 +60,7 @@ public function sendConfirmedBillsToAdmin()
 
     return response()->json([
         'status' => true,
-        'message' => 'تم إرسال جميع الفواتير المؤكدة إلى الأدمن.',
+        'message' => 'All confirmed Bills have been sent to the Admin.',
         'count' => $bills->count(),
     ]);
 }
@@ -92,7 +92,7 @@ public function getConfirmedBillDetails($billId)
     if (!$bill) {
         return response()->json([
             'status' => false,
-            'message' => 'الفاتورة غير موجودة أو غير مؤكدة.',
+            'message' => 'The bill does not exist or is unconfirmed.',
         ], 404);
     }
 
@@ -115,7 +115,7 @@ public function getConfirmedBillDetails($billId)
 
     return response()->json([
         'status' => true,
-        'message' => 'تم جلب تفاصيل الفاتورة المؤكدة بنجاح.',
+        'message' => 'The confirmed bill details have been successfully retrieved.',
         'data' => $data,
     ]);
 }
@@ -134,13 +134,13 @@ public function sendSingleBillToAdmin($id)
 
         return response()->json([
             'status' => 200,
-            'message' => 'تم إرسال الفاتورة إلى الأدمن بنجاح.',
+            'message' => 'The bill has been successfully sent to the Admin.',
             'data' => new BillResource($bill),
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 500,
-            'message' => 'فشل في إرسال الفاتورة.',
+            'message' => 'Failed to send bill.',
             'error' => $e->getMessage(),
         ], 500);
     }
@@ -155,7 +155,7 @@ public function sendAllBillsToAdmin()
         if ($bills->isEmpty()) {
             return response()->json([
                 'status' => 404,
-                'message' => 'لا توجد فواتير لإرسالها.',
+                'message' => 'There are no bills to send.',
             ]);
         }
 
@@ -168,13 +168,13 @@ public function sendAllBillsToAdmin()
 
         return response()->json([
             'status' => 200,
-            'message' => 'تم إرسال جميع الفواتير بنجاح.',
+            'message' => ' All Bills have been sent successfully.',
             'data' => BillResource::collection($bills),
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 500,
-            'message' => 'حدث خطأ أثناء إرسال الفواتير.',
+            'message' => 'An error occurred while sending Bills.',
             'error' => $e->getMessage(),
         ], 500);
     }
@@ -185,7 +185,7 @@ $sentBills = Bill::where('status', 'sent')->get();
 
     return response()->json([
         'status' => true,
-        'message' => 'تم جلب الفواتير المرسلة إلى الأدمن بنجاح.',
+        'message' => 'The Bills sent to the Admin have been successfully retrieved.',
         'data' => $sentBills,
     ]);
 }
@@ -201,21 +201,21 @@ public function showSentBillDetails($id)
     if (!$bill) {
         return response()->json([
             'status' => false,
-            'message' => 'لم يتم العثور على الفاتورة المرسلة.',
+            'message' => 'The bill sent could not be found.',
             'data' => null,
         ], 404);
     }
 
     return response()->json([
         'status' => true,
-        'message' => 'تم جلب تفاصيل الفاتورة المرسلة بنجاح.',
+        'message' => 'The details of the successfully sent bill have been retrieved.',
         'data' => [
             'bill_id' => $bill->id,
             'bill_number' => $bill->bill_number,
             'date' => $bill->created_at->toDateString(),
             'items' => $bill->items->map(function ($item) {
                 return [
-                    'medicine_name' => $item->medicine->name ?? 'غير معروف',
+                    'medicine_name' => $item->medicine->name ?? 'Unknown',
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'total_price' => $item->quantity * $item->unit_price,

@@ -12,7 +12,8 @@ class Cart extends Model
         'user_id',
         'bill_id',
         'status',
-        'customer_name'
+        'customer_name',
+        'user_cart_id'
      ];
 public function bill()
 {
@@ -31,15 +32,26 @@ public function items()
     }
 protected static function boot()
 {
-    parent::boot(); // استدعاء دالة الأب boot لضمان عمل الـ Eloquent بشكل صحيح
+    parent::boot();
 
-    // عند إنشاء سلة جديدة (قبل الحفظ)، توليد رقم فاتورة تلقائي
-    static::creating(function ($cart) {
-        $lastId = Cart::max('id') ?? 0; // جلب أكبر id موجود أو 0 إذا لا يوجد
-        $nextId = $lastId + 1;          // رقم جديد هو التالي بعد الأكبر
-        $cart->bill_number = str_pad($nextId, 4, '0', STR_PAD_LEFT); // تنسيق الرقم بـ 4 خانات مع أصفار
-    });
+  static::creating(function ($cart) {
+    $userId = auth()->id();
 
+    // الحصول على عداد الفواتير لهذا المستخدم أو إنشاؤه
+    $counter = InvoiceCounter::firstOrCreate(
+        ['user_id' => $userId],
+        ['last_number' => 0]
+    );
+
+    // زيادة الرقم
+    $nextNumber = $counter->last_number + 1;
+
+    // حفظ الرقم الجديد
+    $counter->update(['last_number' => $nextNumber]);
+
+    // توليد رقم الفاتورة بصيغة 0001
+    $cart->bill_number = str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+});
     // عند حذف سلة، حذف جميع العناصر المرتبطة بها
     static::deleting(function ($cart) {
         $cart->items()->delete(); // حذف كل العناصر المرتبطة بالسلة

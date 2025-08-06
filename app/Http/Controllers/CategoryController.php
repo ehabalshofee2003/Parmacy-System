@@ -19,7 +19,7 @@ public function index()
 
         return response()->json([
             'status' => 200,
-            'message' => 'تم جلب التصنيفات بنجاح.',
+            'message' => 'The categories were successfully imported.',
             'data' => CategoryResource::collection($categories)
         ]);
     } catch (\Exception $e) {
@@ -57,7 +57,7 @@ public function store(StoreCategoryRequest $request)
 
         return response()->json([
             'status' => true,
-            'message' => 'تم إضافة التصنيف بنجاح.',
+            'message' => 'The Category has been successfully added.',
             'data' => [
                 ...$category->toArray(),
                 // هنا ما في داعي تستخدم asset() لأنه الرابط مباشر من الإنترنت
@@ -70,13 +70,11 @@ public function store(StoreCategoryRequest $request)
 
         return response()->json([
             'status' => false,
-            'message' => 'فشل في إضافة التصنيف.',
+            'message' => 'Failed to add category.',
             'error' => $e->getMessage(),
         ], 500);
     }
 }
-
-
 public function show($id)
 {
     $category = Category::findOrFail($id);
@@ -113,7 +111,7 @@ public function update(Request $request, $id)
 
         return response()->json([
             'status' => true,
-            'message' => 'تم التحديث بنجاح.',
+            'message' => 'The update was successful.',
             'data' => [
                 'id' => $category->id,
                 'name' => $category->name,
@@ -146,12 +144,12 @@ public function destroy($id)
 
         return response()->json([
             'status' => true,
-            'message' => 'تم حذف التصنيف بنجاح.',
+            'message' => 'The category has been successfully deleted.',
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => false,
-            'message' => 'فشل في حذف التصنيف.',
+            'message' => 'Failed to delete category.',
             'error' => $e->getMessage(),
         ], 500);
     }
