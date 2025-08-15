@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
 {
     $schedule->command('report:daily-sales')->dailyAt('23:59');
     $schedule->command('report:daily-stock')->dailyAt('23:59');
+$schedule->command('medicines:check-alerts')->everyMinute();
 }
 
 

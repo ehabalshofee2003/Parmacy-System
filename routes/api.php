@@ -1,5 +1,7 @@
 <?php
-
+/**
+ HI Raghed
+ */
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -40,10 +42,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
             //BILLS
             Route::get('/bills/{billId}', [BillController::class, 'getConfirmedBillDetails']);
-            Route::get('/bills', [BillController::class, 'getConfirmedBills']);
+            Route::get('/bills', [BillController::class,'getConfirmedBills']);
+
+            //الاشعارات
+            Route::get('/notifications', [NotificationController::class, 'getNotifications']);
+            Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
 Route::middleware('isAdmin')->group(function () {
     Route::get('/test-image-url', [CategoryController::class, 'testImagePath']);
-
             Route::get('/admin/users', [UserController::class, 'index']);
             Route::post('/admin/users', [UserController::class, 'store']);
             Route::put('/admin/users/{id}', [UserController::class, 'update']);
@@ -96,5 +102,6 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
     Route::post('notifications', [NotificationController::class, 'store']);
     Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
+
     });
 });
