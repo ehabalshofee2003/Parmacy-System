@@ -26,19 +26,17 @@ class CheckMedicineAlerts extends Command
 
     // 1️⃣ قرب انتهاء الصلاحية
     if ($medicine->expiry_date && $today->diffInDays($medicine->expiry_date, false) <= 7 && $today <= $medicine->expiry_date) {
-        $message = "الدواء {$medicine->name} على وشك انتهاء صلاحيته";
-
+ 
         foreach ($users as $user) {
-            $user->notify(new MedicineAlertNotification($medicine, 'expiry_soon', $message));
+            $user->notify(new MedicineAlertNotification($medicine, 'expiry_soon', "الدواء {$medicine->name} على وشك انتهاء صلاحيته"));
         }
     }
 
     // 2️⃣ انتهاء الصلاحية
     if ($medicine->expiry_date && $today > $medicine->expiry_date) {
-        $message = "الدواء {$medicine->name} انتهت صلاحيته";
 
         foreach ($users as $user) {
-            $user->notify(new MedicineAlertNotification($medicine, 'expired', $message));
+            $user->notify(new MedicineAlertNotification($medicine, 'expired', "الدواء {$medicine->name} انتهت صلاحيته"));
         }
     }
 

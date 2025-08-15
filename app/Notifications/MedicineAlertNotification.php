@@ -9,9 +9,10 @@ class MedicineAlertNotification extends Notification
 {
     use Queueable;
 
-    public $medicine;
-    public $type;
-    public $message;
+    
+    protected $medicine;
+    protected $type;
+    protected $message;
 
     public function __construct($medicine, $type, $message)
     {
@@ -22,15 +23,15 @@ class MedicineAlertNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database']; // يخزن في جدول notifications
+        return ['database']; // فقط قاعدة البيانات
     }
 
     public function toDatabase($notifiable)
     {
         return [
             'medicine_id' => $this->medicine->id,
-            'message' => $this->message,
-            'type' => $this->type,
+            'type' => $this->type,        // ✅ تأكد من وجود هذا السطر
+            'message' => $this->message,  // ✅ تأكد من وجود هذا السطر
         ];
     }
 }
