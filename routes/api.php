@@ -12,6 +12,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\StockReportcontroller;
 use App\Http\Controllers\SalesReportcontroller;
 
+use App\Http\Controllers\NotificationController;
 
 Route::post('/admin/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -91,5 +92,9 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
 
             Route::post('/bills/{id}/send', [BillController::class, 'sendToAdmin']);
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
+             Route::get('notifications', [NotificationController::class, 'index']);
+    Route::post('notifications', [NotificationController::class, 'store']);
+    Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
     });
 });

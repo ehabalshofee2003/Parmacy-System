@@ -12,15 +12,15 @@ class BillResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'customer_name' => $this->customer_name,
-            'total_amount' => $this->total_amount,
+            'bill_id' => $this->id,
+            'bill_number' => $this->bill_number,
             'status' => $this->status,
-            'created_at' => $this->created_at->format('Y-m-d H:i'),
-            'items' => CartItemResource::collection($this->cart->items ?? []),
+            'total_amount' => number_format($this->total_amount, 2),
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'items' => BillItemResource::collection($this->items), // استخدام Resource للعنصر
         ];
     }
 }

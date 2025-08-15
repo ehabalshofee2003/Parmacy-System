@@ -337,8 +337,14 @@ public function removeCartItem(Request $request)
     }
 
     // ✅ حذف العنصر
-    $item->delete();
-
+        $item->delete();
+    if ($request->item_type === 'medicine') {
+        Medicine::where('id', $request->item_id)
+            ->increment('stock_quantity', $item->stock_quantity);
+    } elseif ($request->item_type === 'supply') {
+        Supply::where('id', $request->item_id)
+            ->increment('stock_quantity', $item->stock_quantity);
+    }
     return response()->json([
         'status' => true,
         'message' => 'The item has been removed from the cart.'
@@ -363,27 +369,67 @@ public function deleteCart($id)
         ], 403);
     }
 
+    // ✅ إعادة الكميات للمخزون قبل الحذف
+    foreach ($cart->items as $item) {
+        if ($item->item_type === 'medicine') {
+            Medicine::where('id', $item->item_id)
+                ->increment('stock_quantity', $item->stock_quantity);
+        } elseif ($item->item_type === 'supply') {
+            Supply::where('id', $item->item_id)
+                ->increment('stock_quantity', $item->stock_quantity);
+        }
+    }
+
+    // ✅ حذف السلة (سيحذف العناصر أيضًا إذا العلاقة مضبوط عليها cascade)
     $cart->delete();
 
     return response()->json([
         'status' => true,
-        'message' => 'The cart was successfully deleted.'
+        'message' => 'The cart was successfully deleted, and items were returned to stock.'
     ]);
 }
+
 public function deleteAllCartsForCurrentPharmacist()
 {
     $user = auth()->user();
 
-    $deleted = Cart::where('user_id', $user->id)
-                   ->whereIn('status', ['pending', 'completed'])
+    // ✅ جلب جميع السلات مع عناصرها
+    $carts = Cart::with('items')
+        ->where('user_id', $user->id)
+        ->whereIn('status', ['pending', 'completed'])
+        ->get();
 
-                   ->delete();
+    if ($carts->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'No carts found to delete.'
+        ], 404);
+    }
+
+    // ✅ إرجاع الكميات للمخزون
+    foreach ($carts as $cart) {
+        foreach ($cart->items as $item) {
+            if ($item->item_type === 'medicine') {
+                Medicine::where('id', $item->item_id)
+                    ->increment('stock_quantity', $item->stock_quantity);
+            } elseif ($item->item_type === 'supply') {
+                Supply::where('id', $item->item_id)
+                    ->increment('stock_quantity', $item->stock_quantity);
+            }
+        }
+    }
+
+    // ✅ حذف كل السلات
+    $deleted = Cart::where('user_id', $user->id)
+        ->whereIn('status', ['pending', 'completed'])
+        ->delete();
 
     return response()->json([
         'status' => true,
-'message' => "Successfully deleted {$deleted} carts."
+        'message' => "Successfully deleted {$deleted} carts and returned items to stock."
     ]);
 }
+
 // تأكيد السلة وتحويلها إلى فاتورة
 public function convertCartToBill(Request $request)
 {

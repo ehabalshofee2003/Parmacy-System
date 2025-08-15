@@ -79,15 +79,17 @@ public function getConfirmedBills()
         'data' => $bills,
     ]);
 }
+
+
 public function getConfirmedBillDetails($billId)
 {
     $userId = auth()->id();
 
-    $bill = Bill::with('items')
-                ->where('id', $billId)
-                ->where('user_id', $userId)
-                ->where('status', 'pending') // أو 'pending' حسب حالة التأكيد عندك
-                ->first();
+    $bill = Bill::with('items.medicine')
+        ->where('id', $billId)
+        ->where('user_id', $userId)
+        ->where('status', 'pending')
+        ->first();
 
     if (!$bill) {
         return response()->json([
@@ -96,46 +98,63 @@ public function getConfirmedBillDetails($billId)
         ], 404);
     }
 
-    $data = [
-        'bill_id' => $bill->id,
-        'bill_number' => $bill->bill_number,
-        'status' => $bill->status,
-        'total_amount' => number_format($bill->total_amount, 2),
-        'created_at' => $bill->created_at->format('Y-m-d H:i:s'),
-        'items' => $bill->items->map(function ($item) {
-            return [
-                'item_type' => $item->item_type,
-                'item_id' => $item->item_id,
-                'stock_quantity' => $item->stock_quantity,
-                'unit_price' => number_format($item->unit_price, 2),
-                'total_price' => number_format($item->total_price, 2),
-            ];
-        }),
-    ];
-
     return response()->json([
         'status' => true,
         'message' => 'The confirmed bill details have been successfully retrieved.',
-        'data' => $data,
+        'data' => new BillResource($bill),
     ]);
 }
+
+
+
 public function sendSingleBillToAdmin($id)
 {
     try {
-        $bill = Bill::where('id', $id)
+        // جلب الفاتورة مع العناصر وعلاقتها بالدواء
+        $bill = Bill::with('items.medicine')
+                    ->where('id', $id)
                     ->where('user_id', auth()->id())
                     ->where('status', 'pending')
-                    ->firstOrFail();
+                    ->first();
 
+        if (!$bill) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'The bill does not exist, is not yours, or is already sent.',
+            ]);
+        }
+
+        // تحديث حالة الفاتورة
         $bill->update([
             'status' => 'sent',
             'sent_at' => now(),
         ]);
 
+        // إعادة تحميل العلاقة بعد التحديث
+        $bill->load('items.medicine');
+
+        // تجهيز البيانات للإرجاع
+        $data = [
+            'bill_id' => $bill->id,
+            'bill_number' => $bill->bill_number,
+            'status' => $bill->status,
+            'total_amount' => number_format($bill->total_amount, 2),
+            'created_at' => $bill->created_at->format('Y-m-d H:i:s'),
+            'items' => $bill->items->map(function ($item) {
+                return [
+                    'item_id' => $item->item_id,
+                    'image_url' => $item->medicine?->image_url ?? 'https://via.placeholder.com/150',
+                    'stock_quantity' => $item->stock_quantity,
+                    'unit_price' => number_format($item->unit_price, 2),
+                    'total_price' => number_format($item->total_price, 2),
+                ];
+            }),
+        ];
+
         return response()->json([
             'status' => 200,
             'message' => 'The bill has been successfully sent to the Admin.',
-            'data' => new BillResource($bill),
+            'data' => $data,
         ]);
     } catch (\Exception $e) {
         return response()->json([
@@ -145,6 +164,7 @@ public function sendSingleBillToAdmin($id)
         ], 500);
     }
 }
+
 public function sendAllBillsToAdmin()
 {
     try {
@@ -192,16 +212,15 @@ $sentBills = Bill::where('status', 'sent')->get();
 
 public function showSentBillDetails($id)
 {
-    // التحقق من أن الفاتورة موجودة ومُرسلة
-    $bill = Bill::with(['items.medicine']) // جلب العناصر مع الدواء المرتبط
+    $bill = Bill::with(['items.medicine'])
                 ->where('id', $id)
-                ->where('status', 'sent') // تأكد أنها مرسلة
+                ->where('status', 'sent')
                 ->first();
 
     if (!$bill) {
         return response()->json([
             'status' => false,
-            'message' => 'The bill sent could not be found.',
+            'message' => 'The sent bill could not be found.',
             'data' => null,
         ], 404);
     }
@@ -215,18 +234,19 @@ public function showSentBillDetails($id)
             'date' => $bill->created_at->toDateString(),
             'items' => $bill->items->map(function ($item) {
                 return [
-                    'medicine_name' => $item->medicine->name ?? 'Unknown',
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total_price' => $item->quantity * $item->unit_price,
+                    'medicine_name' => $item->medicine?->name ?? 'Unknown',
+                    'quantity' => $item->stock_quantity ?? 0,
+                    'unit_price' => number_format($item->unit_price ?? 0, 2),
+                    'total_price' => number_format(($item->stock_quantity ?? 0) * ($item->unit_price ?? 0), 2),
                 ];
             }),
-            'total' => $bill->items->sum(function ($item) {
-                return $item->quantity * $item->unit_price;
-            }),
+            'total' => number_format($bill->items->sum(function ($item) {
+                return ($item->stock_quantity ?? 0) * ($item->unit_price ?? 0);
+            }), 2),
         ]
     ]);
 }
+
 
 
 

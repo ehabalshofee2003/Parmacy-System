@@ -58,7 +58,8 @@ public function Bills() {
     return $this->hasMany(Bill::class);
 }
 
-public function notifications() {
+public function notifications()
+{
     return $this->hasMany(Notification::class);
 }
 
@@ -66,9 +67,7 @@ public function auditLogs() {
     return $this->hasMany(AuditLog::class);
 }
 
-public function reports() {
-    return $this->hasMany(Report::class);
-}
+ 
  public function chat(){
         return $this->hasMany(Chat::class , 'created_by');
     }

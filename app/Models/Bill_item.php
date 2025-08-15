@@ -20,8 +20,10 @@ class Bill_item extends Model
     return $this->belongsTo(Bill::class);
 }
 
-public function Medicine() {
-    return $this->belongsTo(Medicine::class);
+public function medicine()
+{
+    return $this->belongsTo(Medicine::class, 'item_id');
 }
+
 
 }
