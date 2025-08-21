@@ -522,7 +522,6 @@ public function confirmAllCompletedCarts()
 {
     $userId = auth()->id();
 
-    // جلب كل السلات المكتملة للمستخدم
     $carts = Cart::with('items')
         ->where('user_id', $userId)
         ->where('status', 'completed')
@@ -544,8 +543,10 @@ public function confirmAllCompletedCarts()
         foreach ($cart->items as $cartItem) {
             if ($cartItem->item_type === 'medicine') {
                 $product = Medicine::find($cartItem->item_id);
+                $unitPrice = $product->consumer_price ?? 0; // ✅ اختيار السعر الصحيح
             } elseif ($cartItem->item_type === 'supply') {
                 $product = Supply::find($cartItem->item_id);
+                $unitPrice = $product->price ?? 0; // إذا عندك عمود price بالمستلزمات
             } else {
                 continue;
             }
@@ -554,47 +555,51 @@ public function confirmAllCompletedCarts()
                 continue;
             }
 
-            $unitPrice = $product->price ?? 0;
             $itemTotal = $unitPrice * $cartItem->stock_quantity;
             $total += $itemTotal;
 
+            // ✅ خصم الكمية من المخزون
+            $product->stock_quantity -= $cartItem->stock_quantity;
+            if ($product->stock_quantity < 0) {
+                $product->stock_quantity = 0;
+            }
+            $product->save();
+
             $billItems[] = [
-                'item_type' => $cartItem->item_type,
-                'item_id' => $cartItem->item_id,
+                'item_type'      => $cartItem->item_type,
+                'item_id'        => $cartItem->item_id,
                 'stock_quantity' => $cartItem->stock_quantity,
-                'unit_price' => $unitPrice,
-                'total_price' => $itemTotal,
+                'unit_price'     => $unitPrice,
+                'total_price'    => $itemTotal,
             ];
         }
 
-       // توليد bill_number فريد
-$lastBill = Bill::orderBy('bill_number', 'desc')->first();
-$lastNumber = $lastBill ? intval($lastBill->bill_number) : 0;
-$nextBillNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        // ✅ توليد bill_number جديد لكل فاتورة
+        $lastBill = Bill::orderBy('bill_number', 'desc')->first();
+        $lastNumber = $lastBill ? intval($lastBill->bill_number) : 0;
+        $nextBillNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
-// إنشاء الفاتورة
-$bill = Bill::create([
-    'user_id'      => $userId,
-    'total_amount' => $total,
-    'status'       => 'pending',
-    'bill_number'  => $nextBillNumber,
-]);
+        $bill = Bill::create([
+            'user_id'      => $userId,
+            'total_amount' => $total,
+            'status'       => 'pending',
+            'bill_number'  => $nextBillNumber,
+        ]);
 
-        // حفظ تفاصيل الفاتورة
         foreach ($billItems as $item) {
             $item['bill_id'] = $bill->id;
             Bill_item::create($item);
         }
 
-        // تحديث حالة السلة إلى confirmed
         $cart->status = 'confirmed';
+        $cart->bill_id = $bill->id; // لو بدك تربط السلة بالفاتورة
         $cart->save();
 
         $convertedBills[] = [
-            'cart_id' => $cart->id,
-            'cart_bill_number' => $cart->bill_number,
-            'bill_id' => $bill->id,
-            'bill_number' => $bill->bill_number,
+            'cart_id'         => $cart->id,
+            'bill_id'         => $bill->id,
+            'bill_number'     => $bill->bill_number,
+            'total_amount'    => $bill->total_amount,
         ];
     }
 
@@ -604,6 +609,7 @@ $bill = Bill::create([
         'converted_bills' => $convertedBills,
     ]);
 }
+
 public function sendToAdmin($id)
 {
     $bill = Bill::findOrFail($id);
