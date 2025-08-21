@@ -15,14 +15,20 @@ class SalesReportService
     $startDate = $this->getStartDate($type);
     $endDate = now();
 
-    // أولاً: نتحقق إذا التقرير موجود أصلاً بنفس النوع ونفس الفترة الزمنية
-    $existingReport = SalesReport::where('report_type', $type)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->first();
+    // // أولاً: نتحقق إذا التقرير موجود أصلاً بنفس النوع ونفس الفترة الزمنية
+    // $existingReport = SalesReport::where('report_type', $type)
+    //     ->whereBetween('created_at', [$startDate, $endDate])
+    //     ->first();
 
-    if ($existingReport) {
-        return $existingReport; // إذا وجدنا التقرير، نرجعه مباشرة
-    }
+    // if ($existingReport) {
+    //     return $existingReport; // إذا وجدنا التقرير، نرجعه مباشرة
+    // }
+    // $bills = DB::table('bills')
+    //     ->where('status', 'sent')
+    //     ->whereBetween('created_at', [$startDate, $endDate])
+    //     ->get(['id','total_amount','created_at']);
+
+    // dd($bills); // بيطبعلك النتيجة ويوقف الكود
 
     // إذا ما وجدنا تقرير سابق، ننشئ واحد جديد (نفس كود التوليد)
     $totalSales = DB::table('bills')

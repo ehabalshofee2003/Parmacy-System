@@ -16,19 +16,19 @@ class StockReportService
         $startDate = $this->getStartDate($type);
         $endDate = now();
 
-        // تحقق إذا التقرير موجود لنفس النوع والفترة
-        $existingReport = StockReport::where('report_type', $type)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->first();
+        // // تحقق إذا التقرير موجود لنفس النوع والفترة
+        // $existingReport = StockReport::where('report_type', $type)
+        //     ->whereBetween('created_at', [$startDate, $endDate])
+        //     ->first();
 
-        if ($existingReport) {
-            return $existingReport; // إرجاع التقرير الموجود بدون إنشاء جديد
-        }
+        // if ($existingReport) {
+        //     return $existingReport; // إرجاع التقرير الموجود بدون إنشاء جديد
+        // }
 
-        // حساب عدد الأدوية المنتهية صلاحيتها خلال الفترة
-        $expiringSoon = DB::table('medicines')
-            ->whereBetween('expiry_date', [$startDate, $endDate])
-            ->count();
+       $expiringSoon = DB::table('medicines')
+    ->whereBetween('expiry_date', [now(), now()->addMonth()])
+    ->count();
+
 
         // حساب عدد الأدوية منخفضة الكمية (مثلاً أقل من 10)
         $lowStock = DB::table('medicines')
@@ -45,7 +45,7 @@ class StockReportService
         ]);
     }
 
-   
+
 
     /**
      * تحديد تاريخ البداية حسب نوع التقرير

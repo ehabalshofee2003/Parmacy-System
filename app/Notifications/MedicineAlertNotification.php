@@ -7,9 +7,8 @@ use Illuminate\Notifications\Notification;
 
 class MedicineAlertNotification extends Notification
 {
-    use Queueable;
+     use Queueable;
 
-    
     protected $medicine;
     protected $type;
     protected $message;
@@ -23,15 +22,15 @@ class MedicineAlertNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database']; // فقط قاعدة البيانات
+        return ['database']; // الإشعار فقط على قاعدة البيانات
     }
 
     public function toDatabase($notifiable)
     {
         return [
             'medicine_id' => $this->medicine->id,
-            'type' => $this->type,        // ✅ تأكد من وجود هذا السطر
-            'message' => $this->message,  // ✅ تأكد من وجود هذا السطر
+            'type'        => $this->type,
+            'message'     => $this->message,
         ];
     }
 }
