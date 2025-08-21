@@ -467,9 +467,10 @@ public function convertCartToBill(Request $request)
             continue;
         }
 
-        $unitPrice = $product->consumer_price ?? 0;
-        $itemTotal = $unitPrice * $cartItem->stock_quantity;
-        $total += $itemTotal;
+       $unitPrice = $product->consumer_price ?? 0; // أو pharmacy_price حسب المطلوب
+$itemTotal = $unitPrice * $cartItem->stock_quantity;
+$total += $itemTotal;
+
 
         // خصم الكمية من المخزون
         $product->stock_quantity -= $cartItem->stock_quantity;
@@ -479,12 +480,12 @@ public function convertCartToBill(Request $request)
         $product->save();
 
         $billItems[] = [
-            'item_type'      => $cartItem->item_type,
-            'item_id'        => $cartItem->item_id,
-            'stock_quantity' => $cartItem->stock_quantity,
-            'unit_price'     => $unitPrice,
-            'total_price'    => $itemTotal,
-        ];
+    'item_type'      => $cartItem->item_type,
+    'item_id'        => $cartItem->item_id,
+    'stock_quantity' => $cartItem->stock_quantity,
+    'unit_price'     => $unitPrice,
+    'total_price'    => $itemTotal,
+];
     }
 
     $lastBill = Bill::orderBy('bill_number', 'desc')->first();
