@@ -84,6 +84,7 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::post('/cart/increase', [CartController::class, 'increaseQuantity']);
             Route::post('/cart/decrease', [CartController::class, 'decreaseQuantity']);
             Route::delete('/cart/remove-item', [CartController::class, 'removeCartItem']);
+            Route::get('/carts/search', [CartController::class, 'searchCartsByCustomerName']);
 
             Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
             Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
@@ -96,7 +97,7 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
             Route::post('/scan-barcode', [MedicineController::class, 'scan']);
 
-            Route::post('/bills/{id}/send', [BillController::class, 'sendToAdmin']);
+            Route::post('/bills/send/{id}', [BillController::class, 'sendToAdmin']);
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
              Route::get('notifications', [NotificationController::class, 'index']);
     Route::post('notifications', [NotificationController::class, 'store']);

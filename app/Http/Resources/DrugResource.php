@@ -16,7 +16,7 @@ class DrugResource extends JsonResource
     {
         return [
             'name_en'         => $this->name_en,
-            'stock_quantity'        => $this->stock_quantity,
+            'stock_quantity'  => $this->stock_quantity,
             'consumer_price'  => $this->consumer_price,
             'barcode'         => $this->barcode,
             'expiry_date'     => $this->expiry_date,

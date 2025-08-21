@@ -34,7 +34,7 @@ public function search(Request $request)
     return response()->json([
         'status' => 200,
         'message' => 'Search results for medications:',
-        'data' => DrugResource::collection($results)
+        'data' => MedicineResource::collection($results)
     ]);
 }
 
@@ -186,27 +186,27 @@ public function destroy($id)
 //
 
  //قراءة الدواء من خلال الباركود
-  public function scan(Request $request)
-    {
-        $request->validate([
-            'barcode' => 'required|string',
-        ]);
 
-        $medicine = Medicine::where('barcode', $request->barcode)->first();
+public function scan(Request $request)
+{
+    $request->validate([
+        'barcode' => 'required|string',
+    ]);
 
-        if (!$medicine) {
-            return response()->json([
-                'message' => 'The medicine is not available.',
-            ], 404);
-        }
+    $medicine = Medicine::where('barcode', $request->barcode)->first();
 
+    if (!$medicine) {
         return response()->json([
-            'id' => $medicine->id,
-            'name_en' => $medicine->name_en,
-            'name_ar' => $medicine->name_ar,
-            'category_id' => $medicine->category_id,
-            'consumer_price' => $medicine->consumer_price,
-            'expiry_date' => $medicine->expiry_date
-        ]);
+            'status'  => false,
+            'message' => 'The medicine is not available.',
+        ], 404);
     }
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'The medicine has been found successfully.',
+        'data'    => new MedicineResource($medicine),
+    ]);
+}
+
 }

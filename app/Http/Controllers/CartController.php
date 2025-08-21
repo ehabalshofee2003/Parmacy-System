@@ -20,6 +20,32 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CartController extends Controller
 {
+public function searchCartsByCustomerName(Request $request)
+{
+    $request->validate([
+        'customer_name' => 'required|string',
+    ]);
+
+    $userId = auth()->id();
+
+    $carts = Cart::with('items.medicine') // إذا بدك ترجع تفاصيل العناصر
+        ->where('user_id', $userId)
+        ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
+        ->get();
+
+    if ($carts->isEmpty()) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'No carts found for this customer.',
+        ], 404);
+    }
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Carts have been successfully fetched.',
+        'data'    => $carts,
+    ]);
+}
 
 // 🟢 إنشاء سلة جديدة فارغة
 public function createNewCart(Request $request)    {
@@ -224,7 +250,14 @@ public function increaseQuantity(Request $request)
 
     // ✅ تعديل الكمية
     $item->stock_quantity += 1;
-    $item->total_price = $item->stock_quantity * $item->unit_price;
+
+    // ✅ اختيار السعر الصحيح من المنتج
+    $unitPrice = $request->item_type === 'medicine'
+        ? $product->consumer_price   // أو pharmacy_price حسب شغلك
+        : $product->price;
+
+    $item->unit_price = $unitPrice;
+    $item->total_price = $item->stock_quantity * $unitPrice;
     $item->save();
 
     // ✅ خصم 1 من المخزون
@@ -236,11 +269,13 @@ public function increaseQuantity(Request $request)
         'message' => 'The quantity has been successfully increased.',
         'data' => [
             'stock_quantity' => $item->stock_quantity,
-            'total_price' => $item->total_price,
+            'unit_price'     => $unitPrice,
+            'total_price'    => $item->total_price,
             'item_remaining_stock' => $product->stock_quantity
         ]
     ]);
 }
+
 //تقليل كمية العنصر
 public function decreaseQuantity(Request $request)
 {

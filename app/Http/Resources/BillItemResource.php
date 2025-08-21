@@ -12,14 +12,16 @@ class BillItemResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-     public function toArray($request)
+  public function toArray($request)
     {
         return [
-            'item_id' => $this->item_id,
-            'image_url' => $this->medicine->image_url,
+            'item_type'      => $this->item_type,
+            'item_id'        => $this->item_id,
+            'item_name'      => $this->medicine?->name_en ?? 'Unknown',
             'stock_quantity' => $this->stock_quantity,
-            'unit_price' => number_format($this->unit_price, 2),
-            'total_price' => number_format($this->total_price, 2),
+            'image_url'      => $this->medicine?->image_url,
+            'unit_price'     => $this->unit_price,
+            'total_price'    => $this->total_price,
         ];
     }
 }
