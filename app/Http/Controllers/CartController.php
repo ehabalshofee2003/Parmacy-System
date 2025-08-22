@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CartController extends Controller
 {
+    //post
 public function searchCartsByCustomerName(Request $request)
 {
     $request->validate([
@@ -29,6 +30,33 @@ public function searchCartsByCustomerName(Request $request)
     $userId = auth()->id();
 
     $carts = Cart::with('items.medicine') // إذا بدك ترجع تفاصيل العناصر
+        ->where('user_id', $userId)
+        ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
+        ->get();
+
+    if ($carts->isEmpty()) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'No carts found for this customer.',
+        ], 404);
+    }
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Carts have been successfully fetched.',
+        'data'    => $carts,
+    ]);
+}
+//get
+public function searchCartsByCustomerNameGet(Request $request)
+{
+    $request->validate([
+        'customer_name' => 'required|string',
+    ]);
+
+    $userId = auth()->id();
+
+    $carts = Cart::with('items.medicine')
         ->where('user_id', $userId)
         ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
         ->get();

@@ -85,6 +85,7 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
             Route::post('/cart/decrease', [CartController::class, 'decreaseQuantity']);
             Route::delete('/cart/remove-item', [CartController::class, 'removeCartItem']);
             Route::get('/carts/search', [CartController::class, 'searchCartsByCustomerName']);
+            Route::post('/carts/search', [CartController::class, 'searchCartsByCustomerName']);
 
             Route::put('/cart/item/{id}', [CartController::class, 'updateCartItem']); //التعديل على عناصر السلة
             Route::delete('/cart/item/{id}', [CartController::class, 'deleteCartItem']);//حذف عناصر م السلة
@@ -95,14 +96,25 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
 
             Route::get('/carts', [CartController::class, 'index']);//استعراض جميع السلل
             Route::get('/carts/{id}', [CartController::class, 'show']);//استعراض تفاصيل سلة معينة
-            Route::post('/scan-barcode', [MedicineController::class, 'scan']);
+            // POST: يرسل الباركود بالـ body
+            Route::post('scan', [MedicineController::class, 'scanPost']);
+
+            // GET: يرسل الباركود كـ query string
+            Route::get('scan', [MedicineController::class, 'scanGet']);
 
             Route::post('/bills/send/{id}', [BillController::class, 'sendToAdmin']);
             Route::post('/bills/send-all', [BillController::class, 'sendAllBillsToAdmin']); // ارسال جميع الفواتير المؤكدة للادمن
-             Route::get('notifications', [NotificationController::class, 'index']);
-    Route::post('notifications', [NotificationController::class, 'store']);
-    Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
+            Route::get('notifications', [NotificationController::class, 'index']);
+            Route::post('notifications', [NotificationController::class, 'store']);
+            Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+            Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
+
+            // طلب GET
+            Route::get('searchMedicines', [MedicineController::class, 'search']);
+
+            // طلب POST
+            Route::post('searchMedicines', [MedicineController::class, 'search']);
+
 
     });
 });

@@ -15,26 +15,32 @@ class MedicineController extends Controller
 //  البحث عن دواء من خلال الاسم  / رقم الباركود / تاريخ الصلاحية /الكمية
 public function search(Request $request)
 {
+    // نجيب القيم سواء من query string (GET) أو body (POST)
+    $barcode     = $request->input('barcode');
+    $nameEn      = $request->input('name_en');
+    $nameAr      = $request->input('name_ar');
+    $expiryDate  = $request->input('expiry_date');
+
     $query = Medicine::query()
-        ->when($request->query('barcode'), fn($q) => $q->where('barcode', $request->query('barcode')))
-        ->when($request->query('name_en'), fn($q) => $q->where('name_en', 'like', '%' . $request->query('name_en') . '%'))
-        ->when($request->query('name_ar'), fn($q) => $q->where('name_ar', 'like', '%' . $request->query('name_ar') . '%'))
-        ->when($request->query('expiry_date'), fn($q) => $q->where('expiry_date', $request->query('expiry_date')));
+        ->when($barcode, fn($q) => $q->where('barcode', $barcode))
+        ->when($nameEn, fn($q) => $q->where('name_en', 'like', '%' . $nameEn . '%'))
+        ->when($nameAr, fn($q) => $q->where('name_ar', 'like', '%' . $nameAr . '%'))
+        ->when($expiryDate, fn($q) => $q->where('expiry_date', $expiryDate));
 
     $results = $query->get();
 
     if ($results->isEmpty()) {
         return response()->json([
-            'status' => false,
+            'status'  => false,
             'message' => 'No matching results found.',
-            'data' => []
-        ]);
+            'data'    => []
+        ], 404);
     }
 
     return response()->json([
-        'status' => 200,
+        'status'  => true,
         'message' => 'Search results for medications:',
-        'data' => MedicineResource::collection($results)
+        'data'    => MedicineResource::collection($results)
     ]);
 }
 
@@ -183,11 +189,8 @@ public function destroy($id)
     ]);
 }
 
-//
-
- //قراءة الدواء من خلال الباركود
-
-public function scan(Request $request)
+// ✅ البحث بالـ POST (barcode من الـ body)
+public function scanPost(Request $request)
 {
     $request->validate([
         'barcode' => 'required|string',
@@ -208,5 +211,32 @@ public function scan(Request $request)
         'data'    => new MedicineResource($medicine),
     ]);
 }
+
+
+// ✅ البحث بالـ GET (barcode من الـ URL أو query string)
+public function scanGet(Request $request)
+{
+    $request->validate([
+        'barcode' => 'required|string',
+    ]);
+
+    $barcode = $request->query('barcode'); // أو $request->barcode لو مررته كـ /scan/{barcode}
+
+    $medicine = Medicine::where('barcode', $barcode)->first();
+
+    if (!$medicine) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'The medicine is not available.',
+        ], 404);
+    }
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'The medicine has been found successfully.',
+        'data'    => new MedicineResource($medicine),
+    ]);
+}
+
 
 }
