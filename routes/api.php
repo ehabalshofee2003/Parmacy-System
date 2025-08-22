@@ -114,7 +114,5 @@ Route::middleware(['auth:sanctum', 'role:pharmacist'])->group(function () {
 
             // طلب POST
             Route::post('searchMedicines', [MedicineController::class, 'search']);
-
-
     });
 });

@@ -28,11 +28,12 @@ public function searchCartsByCustomerName(Request $request)
     ]);
 
     $userId = auth()->id();
+   $carts = Cart::with('items')
+    ->where('user_id', $userId)
+    ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
+    ->get();
 
-    $carts = Cart::with('items.medicine') // إذا بدك ترجع تفاصيل العناصر
-        ->where('user_id', $userId)
-        ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
-        ->get();
+
 
     if ($carts->isEmpty()) {
         return response()->json([
@@ -44,7 +45,7 @@ public function searchCartsByCustomerName(Request $request)
     return response()->json([
         'status'  => true,
         'message' => 'Carts have been successfully fetched.',
-        'data'    => $carts,
+        'data' => CartResource::collection($carts),
     ]);
 }
 //get
@@ -56,10 +57,10 @@ public function searchCartsByCustomerNameGet(Request $request)
 
     $userId = auth()->id();
 
-    $carts = Cart::with('items.medicine')
-        ->where('user_id', $userId)
-        ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
-        ->get();
+    $carts = Cart::with('items')
+    ->where('user_id', $userId)
+    ->where('customer_name', 'LIKE', '%' . $request->customer_name . '%')
+    ->get();
 
     if ($carts->isEmpty()) {
         return response()->json([
@@ -71,7 +72,7 @@ public function searchCartsByCustomerNameGet(Request $request)
     return response()->json([
         'status'  => true,
         'message' => 'Carts have been successfully fetched.',
-        'data'    => $carts,
+        'data' => CartResource::collection($carts),
     ]);
 }
 
