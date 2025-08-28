@@ -15,6 +15,7 @@ class User extends Authenticatable
     protected $guarded = ["id"];
     protected $hidden = [
         'password',
+        'fcm_token',
     ];
 
 
@@ -31,6 +32,7 @@ protected $fillable = [
     'role',
     'is_active',
     'password',
+    'fcm_token',
 ];
 
 
@@ -67,7 +69,7 @@ public function auditLogs() {
     return $this->hasMany(AuditLog::class);
 }
 
- 
+
  public function chat(){
         return $this->hasMany(Chat::class , 'created_by');
     }

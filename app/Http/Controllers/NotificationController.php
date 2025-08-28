@@ -3,10 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function index()
     {
         $user = auth()->user();
@@ -18,6 +27,7 @@ class NotificationController extends Controller
             'data' => $notifications
         ]);
     }
+
     // 2. إنشاء إشعار جديد
     public function store(Request $request)
     {
@@ -40,7 +50,6 @@ class NotificationController extends Controller
         ]);
     }
 
-   
 
     // 4. حذف إشعار
     public function destroy($id)
@@ -53,7 +62,8 @@ class NotificationController extends Controller
             'message' => 'تم حذف الإشعار بنجاح.'
         ]);
     }
- public function getNotifications()
+
+    public function getNotifications()
     {
         $user = auth()->user();
 
@@ -77,5 +87,35 @@ class NotificationController extends Controller
 
         return response()->json(['status' => false, 'message' => 'Notification not found'], 404);
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public function testNotificationToUser(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'title' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        $user = User::findOrFail(1);
+        $this->notificationService->send($user, $request->title, $request->message);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Notification sent'
+        ], 200);
+    }
+
+    public function testNotification()
+    {
+        $user = User::find(1);
+        $user->fcm_token = "dnfWfRDXWlI14MNWGB8Qr8:APA91bFfNBnmDTd-8PFWH-3eK90GRPDlZaFhSPIPK6wzTUhJOU3MPilZH9PxvbqfKvwup_PVi4IVwrMSUGT-_cpLB9Hu0Bw1xgWEIFoX7u_jBKJL8QgM_78";
+        $user->save();
+        $this->notificationService->send($user, "Test", "Testing notifications");
+        return response()->json([
+            'status' => 200,
+            'message' => 'Notification sent'
+        ], 200);
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

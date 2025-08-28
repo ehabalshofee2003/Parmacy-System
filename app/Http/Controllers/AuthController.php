@@ -13,80 +13,89 @@ use App\Services\CartService;
 class AuthController extends Controller
 {
     //register for only admin
-public function register(Request $request)
-{
-    try {
-        $validated = $request->validate([
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'username' => 'required|unique:users',
-            'phone' => 'required',
-            'password' => 'required|confirmed',
-        ]);
+    public function register(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'username' => 'required|unique:users',
+                'phone' => 'required',
+                'password' => 'required|confirmed',
+                'fcm_token' => 'nullable|string',
+            ]);
 
-        $validated['password'] = bcrypt($validated['password']);
-        $validated['role'] = 'admin';
+            $validated['password'] = bcrypt($validated['password']);
+            $validated['role'] = 'admin';
 
-        $user = User::create($validated);
+            $user = User::create($validated);
 
-        $token = $user->createToken('admin_token')->plainTextToken;
+            $token = $user->createToken('admin_token')->plainTextToken;
 
-        return response()->json(['token' => $token, 'status' => 201], 201);
+            return response()->json(['token' => $token, 'status' => 201], 201);
 
-    } catch (ValidationException $e) {
-        return response()->json([
-            'message' => 'Validation Failed',
-            'errors' => $e->errors() ,
-            'status' => 422
-        ], 422); // أو غيرها إن أردت مثل 400
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation Failed',
+                'errors' => $e->errors(),
+                'status' => 422
+            ], 422); // أو غيرها إن أردت مثل 400
+        }
     }
-}
 
 //login for admin||pharmacist
-public function login(Request $request)
-{
-    $request->validate([
-        'username' => 'required|string',
-        'password' => 'required|string',
-    ]);
+    public function login(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+            'fcm_token' => 'nullable|string',
+        ]);
 
-    $user = User::where('username', $request->username)->first();
+        $user = User::where('username', $request->username)->first();
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Username or password is incorrect.'], 401);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Username or password is incorrect.'], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        if ($request->filled('fcm_token')) {
+            $user->update(['fcm_token' => $request->fcm_token]);
+        }
+
+        return response()->json([
+            'token' => $token,
+            'role' => $user->role,
+            'status' => 200,
+            'message' => "You have been Logged in Successfully"
+        ]);
     }
 
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'token' => $token,
-        'role' => $user->role,
-        'status' => 200,
-        'message' => "You have been Logged in Successfully"
-    ]);
-}
-
 //logout for admin||pharmacist
-public function logout(Request $request)
-{
-    $user = $request->user();
+    public function logout(Request $request)
+    {
+        $user = $request->user();
 
-    // تنفيذ العمليات المؤجلة
-    CartService::confirmAllPendingCarts($user);
-    BillService::sendAllPendingBills($user);
+        // تنفيذ العمليات المؤجلة
+        CartService::confirmAllPendingCarts($user);
+        BillService::sendAllPendingBills($user);
 
-    // حذف التوكن
-    $user->tokens()->delete();
+        $user->update(['fcm_token' => null]);
 
-    return response()->json([
-        'status' => 200,
-        'message' => 'You have logged out and completed all operations',
-    ]);
-}
+        // حذف التوكن
+        $user->tokens()->delete();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'You have logged out and completed all operations',
+        ]);
+    }
+
 //not ready yet
-public function profile(Request $request)
-{
-    return response()->json($request->user());
-}
+    public function profile(Request $request)
+    {
+        return response()->json($request->user());
+    }
 
 }
