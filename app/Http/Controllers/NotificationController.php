@@ -89,6 +89,53 @@ class NotificationController extends Controller
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public function sendNotificationToUser(Request $request)
+{
+    $request->validate([
+        'user_id' => 'required|exists:users,id',
+        'title' => 'required|string|max:255',
+        'message' => 'required|string',
+    ]);
+
+    $user = User::findOrFail($request->user_id);
+
+    // إذا المستخدم ما عنده fcm_token مسجل
+    if (!$user->fcm_token) {
+        return response()->json([
+            'status' => 400,
+            'message' => 'User does not have a registered FCM token'
+        ], 400);
+    }
+
+    $this->notificationService->send($user, $request->title, $request->message);
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Notification sent successfully'
+    ], 200);
+}
+public function sendNotificationToAll(Request $request)
+{
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'message' => 'required|string',
+    ]);
+
+    $users = User::whereNotNull('fcm_token')->get();
+
+    foreach ($users as $user) {
+        $this->notificationService->send($user, $request->title, $request->message);
+    }
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Notification sent to all users'
+    ], 200);
+}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     public function testNotificationToUser(Request $request)
     {
         $request->validate([
@@ -105,7 +152,7 @@ class NotificationController extends Controller
         ], 200);
     }
 
-    public function testNotification()
+ public function testNotification()
     {
         $user = User::find(1);
         $user->fcm_token = "dnfWfRDXWlI14MNWGB8Qr8:APA91bFfNBnmDTd-8PFWH-3eK90GRPDlZaFhSPIPK6wzTUhJOU3MPilZH9PxvbqfKvwup_PVi4IVwrMSUGT-_cpLB9Hu0Bw1xgWEIFoX7u_jBKJL8QgM_78";
@@ -116,6 +163,9 @@ class NotificationController extends Controller
             'message' => 'Notification sent'
         ], 200);
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
+
+
+
+

@@ -26,10 +26,10 @@ public function items()
 }
 
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+ public function user()
+ {
+    return $this->belongsTo(User::class);
+ }
 protected static function boot()
 {
     parent::boot();
@@ -57,6 +57,10 @@ protected static function boot()
         $cart->items()->delete(); // حذف كل العناصر المرتبطة بالسلة
     });
 }
-
+ public function recalculateTotal()
+    {
+        $this->total_price = $this->items()->sum('total_price');
+        $this->save();
+ }
 
 }

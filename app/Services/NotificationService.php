@@ -14,7 +14,7 @@ class NotificationService
 {
     private function messaging()
     {
-        $serviceAccountPath = base_path(env('FIREBASE_CREDENTIALS', 'storage/app/firebase/firebase-admin-sdk.json'));
+        $serviceAccountPath = base_path(env('FIREBASE_CREDENTIALS', 'storage\app\firebase\pms-project-caf37-25e0c23bb638.json'));
         $factory = (new \Kreait\Firebase\Factory)->withServiceAccount($serviceAccountPath);
         return $factory->createMessaging();
     }
@@ -147,5 +147,19 @@ class NotificationService
 
         $messaging->send($message);
     }
+
+
+
+    public function notifyAllUsers($title, $message, $type = 'basic')
+{
+    $users = User::whereNotNull('fcm_token')->get();
+
+    foreach ($users as $user) {
+        $this->send($user, $title, $message, $type);
+    }
+
+    return true;
+}
+
 
 }
